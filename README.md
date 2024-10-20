@@ -1,39 +1,122 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# GetX Listener and Consumer Library
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+This library extends the functionality of the [GetX](https://pub.dev/packages/get) package in Flutter, allowing for efficient state management with `GetListener` and `GetConsumer`. These widgets make it easy to reactively update the UI based on changes in state.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **GetListener**: A widget that listens to a specific controller or variable and rebuilds whenever the observed state changes.
+- **GetConsumer**: A widget that allows you to consume and react to changes in a specified controller, making it easier to manage dependencies and state updates.
 
-## Getting started
+## Getting Started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+### Installation
 
+Add the following dependency to your `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  get: ^4.0.0  # or the latest version
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+### GetListener
+
+`GetListener` is useful when you need to react to changes in a specific variable from a controller without needing to rebuild the entire widget tree.
 
 ```dart
-const like = 'sample';
-```
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-## Additional information
+class MyController extends GetxController {
+  var count = 0.obs;
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+  void increment() {
+    count++;
+  }
+}
+
+class MyWidget extends StatelessWidget {
+  final MyController controller = Get.put(MyController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        GetListener<MyController>(
+          listener: (controller) {
+            // React to changes here
+            print('Count updated: ${controller.count}');
+          },
+          child: Obx(() => Text('Count: ${controller.count}')),
+        ),
+        ElevatedButton(
+          onPressed: controller.increment,
+          child: Text('Increment'),
+        ),
+      ],
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class MyController extends GetxController {
+  var counter = 0.obs;
+
+  void increment() {
+    counter++;
+  }
+}
+
+class MyWidget extends StatelessWidget {
+  final MyController controller = Get.put(MyController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('GetConsumer Example'),
+      ),
+      body: Center(
+        child: GetConsumer<MyController>(
+          controller: controller,
+          valueRx: controller.counter,
+          listener: (context, state) {
+            // Show SnackBar if the counter is even
+            if (state % 2 == 0) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Hello! This is a SnackBar message.'),
+                  duration: Duration(seconds: 2),
+                  backgroundColor: Colors.blue,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text(
+                  'You have pushed the button this many times:',
+                ),
+                Text(
+                  state.toString(),
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                ElevatedButton(
+                  onPressed: controller.increment,
+                  child: const Text('Increment'),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+Contribution
+This implementation was inspired by Jean Roldan, who provided valuable insights and code suggestions on Stack Overflow. Their contributions helped streamline the integration of reactive programming principles in Flutter applications.
+
+License
+This project is licensed under the MIT License. See the LICENSE file for more details.
