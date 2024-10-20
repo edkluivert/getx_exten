@@ -7,6 +7,10 @@ This library extends the functionality of the [GetX](https://pub.dev/packages/ge
 - **GetListener**: A widget that listens to a specific controller or variable and rebuilds whenever the observed state changes.
 - **GetConsumer**: A widget that allows you to consume and react to changes in a specified controller, making it easier to manage dependencies and state updates.
 
+- Contribution
+This implementation was inspired by [Jean Roldan](https://stackoverflow.com/users/14933165/jean-roldan), who provided valuable insights and code suggestions on Stack Overflow. Their contributions helped streamline the integration of reactive programming principles in Flutter applications.
+
+
 ## Getting Started
 
 ### Installation
@@ -115,8 +119,6 @@ class MyWidget extends StatelessWidget {
     );
   }
 }
-Contribution
-This implementation was inspired by Jean Roldan, who provided valuable insights and code suggestions on Stack Overflow. Their contributions helped streamline the integration of reactive programming principles in Flutter applications.
 
 License
 This project is licensed under the MIT License. See the LICENSE file for more details.
