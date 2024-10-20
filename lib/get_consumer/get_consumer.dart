@@ -10,22 +10,35 @@ class GetConsumer<T> extends StatelessWidget {
     required this.valueRx,
     required this.listener,
     required this.builder,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final GetxController controller;
   final Rx<T> valueRx;
   final GetWidgetListener<T> listener;
   final GetWidgetBuilder<T> builder;
 
+  // Static variable to keep track of listener registration
+  // still needs tests
+  static final Set<Rx> _registeredListeners = {};
+
   @override
   Widget build(BuildContext context) {
-    ever<T>(valueRx, (value) => listener.call(context, value));
+    //ever<T>(valueRx, (value) => listener.call(context, value));
+    if (!_registeredListeners.contains(valueRx)) {
+      ever<T>(valueRx, (value) {
+        listener.call(context, value);
+      });
+      // Mark as having a registered listener
+      _registeredListeners.add(valueRx);
+    }
+
+
+
     return GetX<GetxController>(
       init: controller,
       builder: (_) {
-        final currentValue = valueRx.value;
-        return builder(context, currentValue);
+        return builder(context, valueRx.value);
       },
     );
   }
