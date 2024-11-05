@@ -2,6 +2,7 @@ import 'package:example/my_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_exten/get_consumer/get_consumer.dart';
+import 'package:getx_exten/state_manager/state_manager.dart';
 
 void main() {
   runApp(const MyApp());
@@ -69,34 +70,25 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: GetConsumer(
-          controller: controller,
-          valueRx: controller.counter,
-          listener: (context, state){
-            if (state % 2 == 0) {
+        child: GetConsumer<String>(
+          stateManager: controller.stateManager,
+          listener: (context, state) {
+            if (controller.stateManager.status.value == RxState.error) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Hello! This is a SnackBar message.'),
-                  duration: Duration(seconds: 2),
-                  backgroundColor: Colors.blue,
-                ),
+                SnackBar(content: Text("Error: ${controller.stateManager.status}")),
+              );
+            }else if(controller.stateManager.status.value == RxState.success){
+              print('hi');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Success: ${controller.stateManager.status}")),
               );
             }
           },
-          builder: (context, state){
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Text(
-                  'You have pushed the button this many times:',
-                ),
-                Text(
-                  state.toString(),
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-              ],
-            );
-          },
+          onLoading: const Center(child: CircularProgressIndicator()),
+          successWidget: (data) => Center(child: Text(data ?? "Success")),
+          onError: (error) => Center(child: Text("Error: $error")),
+          onEmpty: const Center(child: Text("No data available")),
+
         ),
       ),
       floatingActionButton: FloatingActionButton(

@@ -1,6 +1,6 @@
 name: getx_exten
-description: A new Flutter package with GetListener and GetConsumer for Getx Lovers
-version: 1.0.0
+description: A package with GetListener and GetConsumer for Getx Lovers
+version: 1.1.0
 homepage: https://github.com/edkluivert/getx_exten
 # repository: https://github.com/my_org/my_repo
 
