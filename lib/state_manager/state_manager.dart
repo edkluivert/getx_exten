@@ -111,5 +111,29 @@ class StateManager<T> {
       }
     });
   }
+
+  // Method to listen to the status changes without rebuilding the UI
+  void listenToStatus(
+      {required Function onLoading,
+        required Function onSuccess,
+        required Function onError,
+        required Function onEmpty}) {
+    ever<RxState>(_status, (state) {
+      switch (state) {
+        case RxState.loading:
+          onLoading();
+          break;
+        case RxState.success:
+          onSuccess();
+          break;
+        case RxState.error:
+          onError();
+          break;
+        case RxState.empty:
+          onEmpty();
+          break;
+      }
+    });
+  }
 }
 

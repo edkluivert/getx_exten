@@ -13,14 +13,14 @@ class GetConsumer<T> extends StatelessWidget {
   final void Function(BuildContext context, T? state)? listener;
 
   const GetConsumer({
-    Key? key,
+    super.key,
     required this.stateManager,
     required this.successWidget,
     this.onLoading,
     this.onError,
     this.onEmpty,
     this.listener,
-  }) : super(key: key);
+  });
 
   static final Set<Rx> _registeredListeners = {};
 
@@ -31,7 +31,7 @@ class GetConsumer<T> extends StatelessWidget {
     if (!_registeredListeners.contains(stateManager.status)) {
       ever(stateManager.status, (status) {
         if (listener != null) {
-          // Ensure the listener is called only once for each state change
+          // the listener is called only once for each state change
           listener!(context, stateManager.data);
         }
       });

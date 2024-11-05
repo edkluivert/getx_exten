@@ -2,6 +2,7 @@ import 'package:example/my_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_exten/get_consumer/get_consumer.dart';
+import 'package:getx_exten/get_listener/get_listener.dart';
 import 'package:getx_exten/state_manager/state_manager.dart';
 
 void main() {
@@ -70,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: GetConsumer<String>(
+        child: GetListener(
           stateManager: controller.stateManager,
           listener: (context, state) {
             if (controller.stateManager.status.value == RxState.error) {
@@ -80,15 +81,30 @@ class _MyHomePageState extends State<MyHomePage> {
             }else if(controller.stateManager.status.value == RxState.success){
               print('hi');
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Success: ${controller.stateManager.status}")),
+                SnackBar(content: Text("Success: ${controller.stateManager.data}")),
               );
             }
           },
-          onLoading: const Center(child: CircularProgressIndicator()),
-          successWidget: (data) => Center(child: Text(data ?? "Success")),
-          onError: (error) => Center(child: Text("Error: $error")),
-          onEmpty: const Center(child: Text("No data available")),
+          child: GetConsumer<String>(
+            stateManager: controller.stateManager,
+            listener: (context, state) {
+              // if (controller.stateManager.status.value == RxState.error) {
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //     SnackBar(content: Text("Error: ${controller.stateManager.status}")),
+              //   );
+              // }else if(controller.stateManager.status.value == RxState.success){
+              //   print('hi');
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //     SnackBar(content: Text("Success: ${controller.stateManager.status}")),
+              //   );
+              //}
+            },
+            onLoading: const Center(child: CircularProgressIndicator()),
+            successWidget: (data) => Center(child: Text(data ?? "Success")),
+            onError: (error) => Center(child: Text("Error: $error")),
+            onEmpty: const Center(child: Text("No data available")),
 
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(

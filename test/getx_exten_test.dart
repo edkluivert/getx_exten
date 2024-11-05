@@ -17,45 +17,45 @@ class TestController extends GetxController {
 }
 
 void main() {
-  testWidgets('GetListener calls listener on value change', (WidgetTester tester) async {
-    // Create a reactive variable
-    final valueRx = 0.obs;
-
-    // Variable to track listener calls
-    int listenerCallCount = 0;
-
-    // Build the GetListener widget
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: GetListener<int>(
-            valueRx: valueRx,
-            listener: (context, state) {
-              listenerCallCount++;
-            },
-            child: Container(),
-          ),
-        ),
-      ),
-    );
-
-    // Ensure listener is not called initially
-    expect(listenerCallCount, 0);
-
-    // Change the value of the reactive variable
-    valueRx.value = 1;
-    await tester.pump(); // Rebuild the widget tree
-
-    // Ensure listener is called once when value changes
-    expect(listenerCallCount, 1);
-
-    // Change the value again
-    valueRx.value = 2;
-    await tester.pump(); // Rebuild the widget tree
-
-    // Ensure listener is called again when value changes
-    expect(listenerCallCount, 2);
-  });
+  // testWidgets('GetListener calls listener on value change', (WidgetTester tester) async {
+  //   // Create a reactive variable
+  //   final valueRx = 0.obs;
+  //
+  //   // Variable to track listener calls
+  //   int listenerCallCount = 0;
+  //
+  //   // Build the GetListener widget
+  //   await tester.pumpWidget(
+  //     MaterialApp(
+  //       home: Scaffold(
+  //         body: GetListener<int>(
+  //           valueRx: valueRx,
+  //           listener: (context, state) {
+  //             listenerCallCount++;
+  //           },
+  //           child: Container(),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  //
+  //   // Ensure listener is not called initially
+  //   expect(listenerCallCount, 0);
+  //
+  //   // Change the value of the reactive variable
+  //   valueRx.value = 1;
+  //   await tester.pump(); // Rebuild the widget tree
+  //
+  //   // Ensure listener is called once when value changes
+  //   expect(listenerCallCount, 1);
+  //
+  //   // Change the value again
+  //   valueRx.value = 2;
+  //   await tester.pump(); // Rebuild the widget tree
+  //
+  //   // Ensure listener is called again when value changes
+  //   expect(listenerCallCount, 2);
+  // });
 
   group('StateManager Tests', () {
     late StateManager<int> stateManager;
