@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:getx_exten/state_manager/state_manager.dart';
 
-class MyController extends GetxController with StateMixin{
+class MyController extends GetxController {
 
   final StateManager<String> stateManager = StateManager<String>();
   var counter = 0.obs;
@@ -9,7 +9,6 @@ class MyController extends GetxController with StateMixin{
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
     fetchData();
 
