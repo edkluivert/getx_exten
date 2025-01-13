@@ -27,95 +27,121 @@ dependencies:
 `GetListener` is useful when you need to react to changes in a specific variable from a controller without needing to rebuild the entire widget tree.
 
 ```dart
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:getx_exten/state_manager/state_manager.dart';
 
 class MyController extends GetxController {
-  var count = 0.obs;
 
-  void increment() {
-    count++;
-  }
-}
-
-class MyWidget extends StatelessWidget {
-  final MyController controller = Get.put(MyController());
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        GetListener<MyController>(
-          listener: (controller) {
-            // React to changes here
-            print('Count updated: ${controller.count}');
-          },
-          child: Obx(() => Text('Count: ${controller.count}')),
-        ),
-        ElevatedButton(
-          onPressed: controller.increment,
-          child: Text('Increment'),
-        ),
-      ],
-    );
-  }
-}
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-class MyController extends GetxController {
+  final StateManager<String> stateManager = StateManager<String>();
   var counter = 0.obs;
 
-  void increment() {
-    counter++;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchData();
+
   }
+
+  void increment(){
+    counter++;
+
+    //update();
+  }
+
+  void decrement(){
+    counter--;
+  }
+
+
+
+  Future<void> fetchData() async {
+    stateManager.setLoading();
+    await Future.delayed(Duration(seconds: 2)).then((_){
+      stateManager.setSuccess("Fetched Data");
+    });
+
+  }
+
+  Future<void> fetchDataWithError() async {
+    stateManager.setLoading();
+    await Future.delayed(Duration(seconds: 2));
+    stateManager.setError("Error occurred");
+  }
+
 }
 
-class MyWidget extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+
   final MyController controller = Get.put(MyController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GetConsumer Example'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
       ),
       body: Center(
-        child: GetConsumer<MyController>(
-          controller: controller,
-          valueRx: controller.counter,
+        child: GetListener(
+          stateManager: controller.stateManager,
           listener: (context, state) {
-            // Show SnackBar if the counter is even
-            if (state % 2 == 0) {
+            if (controller.stateManager.status.value == RxState.error) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Hello! This is a SnackBar message.'),
-                  duration: Duration(seconds: 2),
-                  backgroundColor: Colors.blue,
-                ),
+                SnackBar(content: Text("Error: ${controller.stateManager.status}")),
+              );
+            }else if(controller.stateManager.status.value == RxState.success){
+              print('hi');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Success: ${controller.stateManager.data}")),
               );
             }
           },
-          builder: (context, state) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Text(
-                  'You have pushed the button this many times:',
-                ),
-                Text(
-                  state.toString(),
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                ElevatedButton(
-                  onPressed: controller.increment,
-                  child: const Text('Increment'),
-                ),
-              ],
-            );
-          },
+          child: GetConsumer<String>(
+            stateManager: controller.stateManager,
+            listener: (context, state) {
+              // if (controller.stateManager.status.value == RxState.error) {
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //     SnackBar(content: Text("Error: ${controller.stateManager.status}")),
+              //   );
+              // }else if(controller.stateManager.status.value == RxState.success){
+              //   print('hi');
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //     SnackBar(content: Text("Success: ${controller.stateManager.status}")),
+              //   );
+              //}
+            },
+            onLoading: const Center(child: CircularProgressIndicator()),
+            successWidget: (data) => Center(child: Text(data ?? "Success")),
+            onError: (error) => Center(child: Text("Error: $error")),
+            onEmpty: const Center(child: Text("No data available")),
+
+          ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: controller.increment,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
