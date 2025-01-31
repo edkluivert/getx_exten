@@ -1,9 +1,9 @@
+import 'package:example/enum.dart';
 import 'package:example/my_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_exten/get_consumer/get_consumer.dart';
 import 'package:getx_exten/get_listener/get_listener.dart';
-import 'package:getx_exten/state_manager/state_manager.dart';
 
 void main() {
   runApp(const MyApp());
@@ -71,39 +71,69 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: GetListener(
-          stateManager: controller.stateManager,
-          listener: (context, state) {
-            if (controller.stateManager.status.value == RxState.error) {
+        child: GetListener<RequestState>(
+          valueRx: controller.feedsRequestState,
+          listener: (context, state){
+
+            if (state is Error ) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Error: ${controller.stateManager.status}")),
+                SnackBar(
+                  content: Text(state.errorMessage), // Show the error message
+                  duration: const Duration(seconds: 3), // Optional duration
+                  backgroundColor: Colors.red, // Show red for errors
+                ),
               );
-            }else if(controller.stateManager.status.value == RxState.success){
-              print('hi');
+            }
+
+            if (state is Success<List<String>>) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Success: ${controller.stateManager.data}")),
+                SnackBar(
+                  content: Text('Fetched ${state.data.length} items successfully!'),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: Colors.green, // Green for success
+                ),
+              );
+            }
+
+            // You can optionally handle other states as well:
+            if (state is Loading) {
+              // Example (usually unnecessary)
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Loading...'),
+                  duration: Duration(seconds: 1), // Short duration
+                ),
               );
             }
           },
-          child: GetConsumer<String>(
-            stateManager: controller.stateManager,
-            listener: (context, state) {
-              // if (controller.stateManager.status.value == RxState.error) {
-              //   ScaffoldMessenger.of(context).showSnackBar(
-              //     SnackBar(content: Text("Error: ${controller.stateManager.status}")),
-              //   );
-              // }else if(controller.stateManager.status.value == RxState.success){
-              //   print('hi');
-              //   ScaffoldMessenger.of(context).showSnackBar(
-              //     SnackBar(content: Text("Success: ${controller.stateManager.status}")),
-              //   );
-              //}
+          child: GetConsumer(
+            controller: controller,
+            valueRx: controller.counter,
+            listener: (context, state){
+              if (state % 2 == 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Hello! This is a SnackBar message.'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              }
             },
-            onLoading: const Center(child: CircularProgressIndicator()),
-            successWidget: (data) => Center(child: Text(data ?? "Success")),
-            onError: (error) => Center(child: Text("Error: $error")),
-            onEmpty: const Center(child: Text("No data available")),
-
+            builder: (context, state){
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text(
+                    'You have pushed the button this many times:',
+                  ),
+                  Text(
+                    state.toString(),
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),

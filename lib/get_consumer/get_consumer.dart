@@ -1,49 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/state_manager/state_manager.dart';
 
-typedef NotifierBuilder<T> = Widget Function(T? state);
+typedef GetWidgetListener<S> = void Function(BuildContext context, S state);
+typedef GetWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 
-class GetConsumer<T> extends StatelessWidget {
-  final StateManager<T> stateManager;
-  final NotifierBuilder<T?> successWidget;
-  final Widget Function(String? error)? onError;
-  final Widget? onLoading;
-  final Widget? onEmpty;
-  final void Function(BuildContext context, T? state)? listener;
-
+class GetConsumer<T> extends StatefulWidget {
   const GetConsumer({
+    required this.controller,
+    required this.valueRx,
+    required this.listener,
+    required this.builder,
     super.key,
-    required this.stateManager,
-    required this.successWidget,
-    this.onLoading,
-    this.onError,
-    this.onEmpty,
-    this.listener,
   });
 
-  static final Set<Rx> _registeredListeners = {};
+  final GetxController controller;
+  final Rx<T> valueRx;
+  final GetWidgetListener<T> listener;
+  final GetWidgetBuilder<T> builder;
+
+  @override
+  State<GetConsumer<T>> createState() => _GetConsumerState<T>();
+}
+
+class _GetConsumerState<T> extends State<GetConsumer<T>> {
+  Worker? _worker;
+
+  @override
+  void initState() {
+    super.initState();
+    _worker = ever<T>(widget.valueRx, (value) {
+      if (mounted) {
+        widget.listener.call(context, value);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _worker?.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    // Using Obx to reactively listen to changes in the StateManager
-
-    if (!_registeredListeners.contains(stateManager.status)) {
-      ever(stateManager.status, (status) {
-        if (listener != null) {
-          // the listener is called only once for each state change
-          listener!(context, stateManager.data);
-        }
-      });
-      // Mark as having a registered listener
-      _registeredListeners.add(stateManager.status);
-    }
-
-    return stateManager.obx(
-      successWidget,
-      onLoading: onLoading,
-      onError: onError,
-      onEmpty: onEmpty,
+    return GetX<GetxController>(
+      init: widget.controller,
+      builder: (_) {
+        final currentValue = widget.valueRx.value;
+        return widget.builder(context, currentValue);
+      },
     );
   }
 }

@@ -4,136 +4,132 @@ This library extends the functionality of the [GetX](https://pub.dev/packages/ge
 
 ## Features
 
-- **GetListener**: A widget that listens to a specific controller or variable and rebuilds whenever the observed state changes.
-- **GetConsumer**: A widget that allows you to consume and react to changes in a specified controller, making it easier to manage dependencies and state updates.
+- **GetListener**: A widget that listens to a specific observable variable and triggers a callback when the state changes.
+- **GetConsumer**: A widget that listens to state changes and also provides a builder function to rebuild part of the UI.
 
-- Contribution
-This implementation was inspired by [Jean Roldan](https://stackoverflow.com/users/14933165/jean-roldan), who provided valuable insights and code suggestions on Stack Overflow. Their contributions helped streamline the integration of reactive programming principles in Flutter applications.
+## Acknowledgments
 
+This implementation was inspired by [Jean Roldan](https://stackoverflow.com/users/14933165/jean-roldan), whose contributions on Stack Overflow provided valuable insights into integrating reactive programming principles in Flutter applications.
 
-## Getting Started
-
-### Installation
+## Installation
 
 Add the following dependency to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
   get: ^4.0.0  # or the latest version
+```
+
 ## Usage
 
 ### GetListener
 
-`GetListener` is useful when you need to react to changes in a specific variable from a controller without needing to rebuild the entire widget tree.
+`GetListener` is useful when you need to react to changes in a specific variable from a controller without rebuilding the entire widget tree.
+
+#### Example
 
 ```dart
 import 'package:get/get.dart';
-import 'package:getx_exten/state_manager/state_manager.dart';
+import 'package:flutter/material.dart';
 
 class MyController extends GetxController {
+  final RxInt counter = 0.obs;
+  final Rx<RequestState<List<String>>> feedsRequestState = RequestState<List<String>>.initial().obs;
 
-  final StateManager<String> stateManager = StateManager<String>();
-  var counter = 0.obs;
+  void increment() => counter++;
+  void decrement() => counter--;
 
-
-  @override
-  void onInit() {
-    super.onInit();
-    fetchData();
-
+  /// Fetch data and update the state
+  Future<void> fetchFeeds() async {
+    try {
+      feedsRequestState.value = RequestState.loading();
+      await Future.delayed(const Duration(seconds: 2));
+      feedsRequestState.value = RequestState.success(['Feed 1', 'Feed 2', 'Feed 3']);
+    } catch (error) {
+      feedsRequestState.value = RequestState.error('Failed to fetch feeds');
+    }
   }
-
-  void increment(){
-    counter++;
-
-    //update();
-  }
-
-  void decrement(){
-    counter--;
-  }
-
-
-
-  Future<void> fetchData() async {
-    stateManager.setLoading();
-    await Future.delayed(Duration(seconds: 2)).then((_){
-      stateManager.setSuccess("Fetched Data");
-    });
-
-  }
-
-  Future<void> fetchDataWithError() async {
-    stateManager.setLoading();
-    await Future.delayed(Duration(seconds: 2));
-    stateManager.setError("Error occurred");
-  }
-
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+void main() {
+  runApp(const MyApp());
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-
-  final MyController controller = Get.put(MyController());
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
       ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key, required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final MyController controller = Get.put(MyController());
+    
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
       body: Center(
-        child: GetListener(
-          stateManager: controller.stateManager,
+        child: GetListener<RequestState>(
+          valueRx: controller.feedsRequestState,
           listener: (context, state) {
-            if (controller.stateManager.status.value == RxState.error) {
+            if (state is Error) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Error: ${controller.stateManager.status}")),
+                SnackBar(
+                  content: Text(state.errorMessage),
+                  duration: const Duration(seconds: 3),
+                  backgroundColor: Colors.red,
+                ),
               );
-            }else if(controller.stateManager.status.value == RxState.success){
-              print('hi');
+            }
+            if (state is Success<List<String>>) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Success: ${controller.stateManager.data}")),
+                SnackBar(
+                  content: Text('Fetched ${state.data.length} items successfully!'),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: Colors.green,
+                ),
               );
             }
           },
-          child: GetConsumer<String>(
-            stateManager: controller.stateManager,
+          child: GetConsumer(
+            controller: controller,
+            valueRx: controller.counter,
             listener: (context, state) {
-              // if (controller.stateManager.status.value == RxState.error) {
-              //   ScaffoldMessenger.of(context).showSnackBar(
-              //     SnackBar(content: Text("Error: ${controller.stateManager.status}")),
-              //   );
-              // }else if(controller.stateManager.status.value == RxState.success){
-              //   print('hi');
-              //   ScaffoldMessenger.of(context).showSnackBar(
-              //     SnackBar(content: Text("Success: ${controller.stateManager.status}")),
-              //   );
-              //}
+              if (state % 2 == 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Hello! This is a SnackBar message.'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              }
             },
-            onLoading: const Center(child: CircularProgressIndicator()),
-            successWidget: (data) => Center(child: Text(data ?? "Success")),
-            onError: (error) => Center(child: Text("Error: $error")),
-            onEmpty: const Center(child: Text("No data available")),
-
+            builder: (context, state) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text('You have pushed the button this many times:'),
+                  Text(
+                    state.toString(),
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -141,10 +137,41 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: controller.increment,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
+```
 
-License
+## RequestState Class
+
+This class represents different states of a request:
+
+```dart
+abstract class RequestState<T> {
+  const RequestState();
+
+  factory RequestState.initial() = Initial<T>;
+  factory RequestState.loading() = Loading<T>;
+  factory RequestState.success(T data) = Success<T>;
+  factory RequestState.error(String errorMessage) = Error<T>;
+}
+
+class Initial<T> extends RequestState<T> {}
+class Loading<T> extends RequestState<T> {}
+
+class Success<T> extends RequestState<T> {
+  final T data;
+  Success(this.data);
+}
+
+class Error<T> extends RequestState<T> {
+  final String errorMessage;
+  Error(this.errorMessage);
+}
+```
+
+## License
+
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
