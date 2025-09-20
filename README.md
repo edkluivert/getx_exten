@@ -153,6 +153,13 @@ GetXListener<CounterState>(
 class ApiController extends RxCubit<RxState> {
   ApiController() : super(const RxInitial());
 
+  @override
+  void onInit(){
+    super.onInit();
+    fetchItems();
+  }
+
+
   Future<void> fetchItems() async {
     emit(const RxLoading());
     await Future.delayed(const Duration(seconds: 2));
@@ -170,7 +177,7 @@ class ApiController extends RxCubit<RxState> {
 
 ```dart
 GetXConsumer<RxState>(
-  observable: apiController.state\$,
+  observable: apiController.state,
   builder: (context, state) {
     if (state is RxLoading) {
       return const CircularProgressIndicator();
@@ -179,7 +186,7 @@ GetXConsumer<RxState>(
         children: state.data.map((e) => Text(e)).toList(),
       );
     } else if (state is RxError) {
-      return Text("Error: \${state.message}");
+      return Text("Error: ${state.message}");
     }
     return const Text("Press fetch to load items");
   },

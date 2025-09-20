@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_exten/get_consumer/get_consumer.dart';
 import 'package:getx_exten/getx_exten.dart';
+import 'package:getx_exten/utils/base_state.dart';
 
 
 void main() {
@@ -56,38 +57,56 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final MyController controller = Get.put(MyController());
 
+  final ApiController apiController = Get.put(ApiController());
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Counter Example')),
-      body: Center(
-        child: GetConsumer<CounterState>(
-          controller: controller,
-          listenWhen: (previous, current) =>  current.value % 2 == 0,
-          buildWhen: (previous, current) => current.value % 2 == 0,
-          listener: (context, state) {
-            if (state is CounterValue ) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("You reached ${state.value}! 🎉")),
-              );
-            }
-          },
-          builder: (context, state) {
-            if (state is CounterInitial) {
-              return const Text(
-                "Press the + button to start",
-                style: TextStyle(fontSize: 20),
-              );
-            } else if (state is CounterValue) {
-              return Text(
-                "Count: ${state.value}",
-                style: const TextStyle(fontSize: 30),
-              );
-            }
-            return const SizedBox();
-          },
-        ),
+      body: GetConsumer<RxState>(
+        controller: apiController ,
+        listener: (BuildContext context, RxState state) {  },
+        builder: (context, state) {
+          if (state is RxLoading) {
+            return const CircularProgressIndicator();
+          } else if (state is RxSuccess<List<String>>) {
+            return Column(
+              children: state.data.map((e) => Text(e)).toList(),
+            );
+          } else if (state is RxError) {
+            return Text("Error: ${state.message}");
+          }
+          return const Text("Press fetch to load items");
+        },
       ),
+      // body: Center(
+      //   child: GetConsumer<CounterState>(
+      //     controller: controller,
+      //     listenWhen: (previous, current) =>  current.value % 2 == 0,
+      //     buildWhen: (previous, current) => current.value % 2 == 0,
+      //     listener: (context, state) {
+      //       if (state is CounterValue ) {
+      //         ScaffoldMessenger.of(context).showSnackBar(
+      //           SnackBar(content: Text("You reached ${state.value}! 🎉")),
+      //         );
+      //       }
+      //     },
+      //     builder: (context, state) {
+      //       if (state is CounterInitial) {
+      //         return const Text(
+      //           "Press the + button to start",
+      //           style: TextStyle(fontSize: 20),
+      //         );
+      //       } else if (state is CounterValue) {
+      //         return Text(
+      //           "Count: ${state.value}",
+      //           style: const TextStyle(fontSize: 30),
+      //         );
+      //       }
+      //       return const SizedBox();
+      //     },
+      //   ),
+      // ),
       floatingActionButton: FloatingActionButton(
         onPressed: controller.increment,
         child: const Icon(Icons.add),

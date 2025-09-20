@@ -26,3 +26,25 @@ class MyController extends RxCubit<CounterState> {
 
   void reset() => emit(const CounterInitial());
 }
+
+
+class ApiController extends RxCubit<RxState> {
+  ApiController() : super(const RxInitial());
+
+  @override
+  void onInit(){
+    super.onInit();
+    fetchItems();
+  }
+
+  Future<void> fetchItems() async {
+    emit(const RxLoading());
+    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final items = ["Apple", "Banana", "Mango"];
+      emit(RxSuccess(items));
+    } catch (e) {
+      emit(const RxError("Failed to fetch data"));
+    }
+  }
+}
