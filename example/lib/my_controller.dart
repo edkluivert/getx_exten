@@ -1,50 +1,28 @@
-import 'package:example/enum.dart';
-import 'package:get/get.dart';
 
-class MyController extends GetxController{
-
-  var counter = 0.obs;
-  final Rx<RequestState<List<String>>> feedsRequestState =
-      RequestState<List<String>>.initial().obs;
-
-  @override
-  void onInit() {
-    super.onInit();
-    fetchFeeds();
-  }
-
-  void increment(){
-    counter++;
-
-    //update();
-  }
-
-  void decrement(){
-    counter--;
-  }
+import 'package:getx_exten/utils/base_state.dart';
+import 'package:getx_exten/utils/emit.dart';
 
 
+/// Base counter state
+abstract class CounterState extends RxState {
+  final int value;
+  const CounterState(this.value);
+}
 
-  /// Fetch data and update the state
-  Future<void> fetchFeeds() async {
-    try {
-      // Update state to loading
-      feedsRequestState.value = RequestState.loading();
+/// Initial state (count = 0)
+class CounterInitial extends CounterState {
+  const CounterInitial() : super(0);
+}
 
-      // Simulate a network request
-      await Future.delayed(const Duration(seconds: 2));
+/// Updated state with a value
+class CounterValue extends CounterState {
+  const CounterValue(int value) : super(value);
+}
 
-      // Example response data
-      List<String> response = ['Feed 1', 'Feed 2', 'Feed 3'];
+class MyController extends RxCubit<CounterState> {
+  MyController() : super(const CounterInitial());
 
-      // Update state to success and pass the data
-      feedsRequestState.value = RequestState.success(response);
-    } catch (error) {
-      // Update state to error with a message
-      feedsRequestState.value =
-          RequestState.error('Failed to fetch feeds');
-    }
-    update();
-  }
+  void increment() => emit(CounterValue(state.value + 1));
 
+  void reset() => emit(const CounterInitial());
 }

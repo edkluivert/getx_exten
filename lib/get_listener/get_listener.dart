@@ -1,18 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:get/state_manager.dart';
+import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 
-typedef GetxWidgetListener<S> = void Function(BuildContext context, S state);
+typedef RxListener<T> = void Function(BuildContext context, T state);
 
 class GetListener<T> extends StatefulWidget {
   const GetListener({
-    required this.valueRx,
+    required this.rx,
     required this.listener,
     required this.child,
     super.key,
   });
 
-  final Rx<T> valueRx;
-  final GetxWidgetListener<T> listener;
+  final Rx<T> rx;
+  final RxListener<T> listener;
   final Widget child;
 
   @override
@@ -20,18 +20,30 @@ class GetListener<T> extends StatefulWidget {
 }
 
 class _GetListenerState<T> extends State<GetListener<T>> {
-
+  late T _lastValue;
   Worker? _worker;
 
   @override
   void initState() {
     super.initState();
-    _worker = ever<T>(widget.valueRx, (value) {
+    _lastValue = widget.rx.value;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        widget.listener.call(context, value);
+        widget.listener(context, _lastValue);
+      }
+    });
+    // Listen for future changes
+    _worker = ever<T>(widget.rx, (newValue) {
+      if (newValue != _lastValue) {
+        if (mounted) {
+          widget.listener(context, newValue);
+        }
+        _lastValue = newValue;
       }
     });
   }
+
 
   @override
   void dispose() {
@@ -39,11 +51,6 @@ class _GetListenerState<T> extends State<GetListener<T>> {
     super.dispose();
   }
 
-
-
   @override
-  Widget build(BuildContext context) {
-    return widget.child;
-  }
+  Widget build(BuildContext context) => widget.child;
 }
-

@@ -1,141 +1,118 @@
-# GetX Listener and Consumer Library
+# GetX Extensions – RxCubit, Listener, Consumer
 
-This library extends the functionality of the [GetX](https://pub.dev/packages/get) package in Flutter, allowing for efficient state management with `GetListener` and `GetConsumer`. These widgets make it easy to reactively update the UI based on changes in state.
+**Extend GetX with a Cubit/Bloc-style API**, inspired by `flutter_bloc`, but with **GetX simplicity**.
 
-## Features
+---
 
-- **GetListener**: A widget that listens to a specific observable variable and triggers a callback when the state changes.
-- **GetConsumer**: A widget that listens to state changes and also provides a builder function to rebuild part of the UI.
+## 🚀 Features
 
-## Acknowledgments
+- **`RxCubit`**: Manage state with `emit`.
+- **`RxState`**: Base class for states.
+- **Built-in generic states**:
+    - `RxInitial`
+    - `RxLoading`
+    - `RxSuccess<T>`
+    - `RxError`
+- **`GetXListener`**: Listen for state changes (side effects only).
+- **`GetXConsumer`**: Listen **and** rebuild UI in one widget.
 
-This implementation was inspired by [Jean Roldan](https://stackoverflow.com/users/14933165/jean-roldan), whose contributions on Stack Overflow provided valuable insights into integrating reactive programming principles in Flutter applications.
+---
 
-## Installation
+## 📦 Installation
 
-Add the following dependency to your `pubspec.yaml` file:
+Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  get: ^4.0.0  # or the latest version
+  getx_exten: ^1.1.3
 ```
 
-## Usage
+---
 
-### GetListener
+## 🔧 Base States
 
-`GetListener` is useful when you need to react to changes in a specific variable from a controller without rebuilding the entire widget tree.
-
-#### Example
+### `RxState` (Base Class)
 
 ```dart
-import 'package:get/get.dart';
-import 'package:flutter/material.dart';
+abstract class RxState {
+  const RxState();
+}
+```
 
-class MyController extends GetxController {
-  final RxInt counter = 0.obs;
-  final Rx<RequestState<List<String>>> feedsRequestState = RequestState<List<String>>.initial().obs;
+### Generic States
 
-  void increment() => counter++;
-  void decrement() => counter--;
+```dart
+class RxInitial extends RxState {}
+class RxLoading extends RxState {}
+class RxSuccess<T> extends RxState {
+  final T data;
+  const RxSuccess(this.data);
+}
+class RxError extends RxState {
+  final String message;
+  const RxError(this.message);
+}
+```
 
-  /// Fetch data and update the state
-  Future<void> fetchFeeds() async {
-    try {
-      feedsRequestState.value = RequestState.loading();
-      await Future.delayed(const Duration(seconds: 2));
-      feedsRequestState.value = RequestState.success(['Feed 1', 'Feed 2', 'Feed 3']);
-    } catch (error) {
-      feedsRequestState.value = RequestState.error('Failed to fetch feeds');
-    }
-  }
+---
+
+## 📝 Example: Counter Cubit
+
+### State
+
+```dart
+abstract class CounterState extends RxState {
+  final int value;
+  const CounterState(this.value);
 }
 
-void main() {
-  runApp(const MyApp());
+class CounterInitial extends CounterState {
+  const CounterInitial() : super(0);
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CounterValue extends CounterState {
+  const CounterValue(int value) : super(value);
+}
+```
+
+### Controller
+
+```dart
+class CounterController extends RxCubit<CounterState> {
+  CounterController() : super(const CounterInitial());
+
+  void increment() => emit(CounterValue(state.value + 1));
+  void reset() => emit(const CounterInitial());
+}
+```
+
+### UI
+
+```dart
+class CounterPage extends StatelessWidget {
+  const CounterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final MyController controller = Get.put(MyController());
-    
+    final controller = Get.put(CounterController());
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(title: const Text("Counter Example")),
       body: Center(
-        child: GetListener<RequestState>(
-          valueRx: controller.feedsRequestState,
-          listener: (context, state) {
-            if (state is Error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage),
-                  duration: const Duration(seconds: 3),
-                  backgroundColor: Colors.red,
-                ),
+        child: GetXConsumer<CounterState>(
+          observable: controller.state\$,
+          builder: (context, state) {
+            if (state is CounterValue) {
+              return Text(
+                "Count: \${state.value}",
+                style: const TextStyle(fontSize: 32),
               );
             }
-            if (state is Success<List<String>>) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Fetched ${state.data.length} items successfully!'),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
+            return const Text("Press + to start");
           },
-          child: GetConsumer(
-            controller: controller,
-            valueRx: controller.counter,
-            listener: (context, state) {
-              if (state % 2 == 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Hello! This is a SnackBar message.'),
-                    duration: Duration(seconds: 2),
-                    backgroundColor: Colors.blue,
-                  ),
-                );
-              }
-            },
-            builder: (context, state) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text('You have pushed the button this many times:'),
-                  Text(
-                    state.toString(),
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ],
-              );
-            },
-          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: controller.increment,
-        tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
     );
@@ -143,35 +120,70 @@ class MyHomePage extends StatelessWidget {
 }
 ```
 
-## RequestState Class
+---
 
-This class represents different states of a request:
+## 🎧 Listener Example
 
 ```dart
-abstract class RequestState<T> {
-  const RequestState();
+GetXListener<CounterState>(
+  observable: controller.state\$,
+  listenWhen: (prev, curr) => curr is CounterValue && curr.value == 5,
+  listener: (context, state) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("🎉 Count reached 5!")),
+    );
+  },
+  child: GetXConsumer<CounterState>(
+    observable: controller.state\$,
+    builder: (context, state) {
+      final value = state is CounterValue ? state.value : 0;
+      return Text("Count: \$value", style: const TextStyle(fontSize: 28));
+    },
+  ),
+)
+```
 
-  factory RequestState.initial() = Initial<T>;
-  factory RequestState.loading() = Loading<T>;
-  factory RequestState.success(T data) = Success<T>;
-  factory RequestState.error(String errorMessage) = Error<T>;
-}
+---
 
-class Initial<T> extends RequestState<T> {}
-class Loading<T> extends RequestState<T> {}
+## 🔄 API Fetching Example
 
-class Success<T> extends RequestState<T> {
-  final T data;
-  Success(this.data);
-}
+### Controller
 
-class Error<T> extends RequestState<T> {
-  final String errorMessage;
-  Error(this.errorMessage);
+```dart
+class ApiController extends RxCubit<RxState> {
+  ApiController() : super(const RxInitial());
+
+  Future<void> fetchItems() async {
+    emit(const RxLoading());
+    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final items = ["Apple", "Banana", "Mango"];
+      emit(RxSuccess(items));
+    } catch (e) {
+      emit(RxError("Failed to fetch data"));
+    }
+  }
 }
 ```
 
-## License
+### UI
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+```dart
+GetXConsumer<RxState>(
+  observable: apiController.state\$,
+  builder: (context, state) {
+    if (state is RxLoading) {
+      return const CircularProgressIndicator();
+    } else if (state is RxSuccess<List<String>>) {
+      return Column(
+        children: state.data.map((e) => Text(e)).toList(),
+      );
+    } else if (state is RxError) {
+      return Text("Error: \${state.message}");
+    }
+    return const Text("Press fetch to load items");
+  },
+)
+```
 
+---

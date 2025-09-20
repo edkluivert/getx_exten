@@ -1,9 +1,11 @@
+import 'package:example/app_state.dart';
 import 'package:example/enum.dart';
 import 'package:example/my_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_exten/get_consumer/get_consumer.dart';
-import 'package:getx_exten/get_listener/get_listener.dart';
+import 'package:getx_exten/getx_exten.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -44,14 +46,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -60,88 +54,45 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   final MyController controller = Get.put(MyController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: const Text('Counter Example')),
       body: Center(
-        child: GetListener<RequestState>(
-          valueRx: controller.feedsRequestState,
-          listener: (context, state){
-
-            if (state is Error ) {
+        child: GetConsumer<CounterState>(
+          controller: controller,
+          listenWhen: (previous, current) =>  current.value % 2 == 0,
+          buildWhen: (previous, current) => current.value % 2 == 0,
+          listener: (context, state) {
+            if (state is CounterValue ) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage), // Show the error message
-                  duration: const Duration(seconds: 3), // Optional duration
-                  backgroundColor: Colors.red, // Show red for errors
-                ),
-              );
-            }
-
-            if (state is Success<List<String>>) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Fetched ${state.data.length} items successfully!'),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: Colors.green, // Green for success
-                ),
-              );
-            }
-
-            // You can optionally handle other states as well:
-            if (state is Loading) {
-              // Example (usually unnecessary)
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Loading...'),
-                  duration: Duration(seconds: 1), // Short duration
-                ),
+                SnackBar(content: Text("You reached ${state.value}! 🎉")),
               );
             }
           },
-          child: GetConsumer(
-            controller: controller,
-            valueRx: controller.counter,
-            listener: (context, state){
-              if (state % 2 == 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Hello! This is a SnackBar message.'),
-                    duration: Duration(seconds: 2),
-                    backgroundColor: Colors.blue,
-                  ),
-                );
-              }
-            },
-            builder: (context, state){
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text(
-                    'You have pushed the button this many times:',
-                  ),
-                  Text(
-                    state.toString(),
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ],
+          builder: (context, state) {
+            if (state is CounterInitial) {
+              return const Text(
+                "Press the + button to start",
+                style: TextStyle(fontSize: 20),
               );
-            },
-          ),
+            } else if (state is CounterValue) {
+              return Text(
+                "Count: ${state.value}",
+                style: const TextStyle(fontSize: 30),
+              );
+            }
+            return const SizedBox();
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: controller.increment,
-        tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
+
+     }
   }
-}

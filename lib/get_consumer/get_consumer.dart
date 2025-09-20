@@ -1,55 +1,90 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:getx_exten/utils/base_state.dart';
+import '../utils/emit.dart';
 
-typedef GetWidgetListener<S> = void Function(BuildContext context, S state);
-typedef GetWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 
-class GetConsumer<T> extends StatefulWidget {
+typedef GetWidgetBuilder<S extends RxState> = Widget Function(
+    BuildContext context,
+    S state,
+    );
+
+typedef GetListener<S extends RxState> = void Function(
+    BuildContext context,
+    S state,
+    );
+
+typedef GetCondition<S extends RxState> = bool Function(
+    S previous,
+    S current,
+    );
+
+class GetConsumer<S extends RxState> extends StatefulWidget {
   const GetConsumer({
-    required this.controller,
-    required this.valueRx,
-    required this.listener,
     required this.builder,
+    required this.listener,
+    required this.controller,
+    this.listenWhen,
+    this.buildWhen,
     super.key,
   });
 
-  final GetxController controller;
-  final Rx<T> valueRx;
-  final GetWidgetListener<T> listener;
-  final GetWidgetBuilder<T> builder;
+  final GetWidgetBuilder<S> builder;
+  final GetListener<S> listener;
+  final dynamic controller;
+
+  /// Optional filter: should [listener] be called?
+  final GetCondition<S>? listenWhen;
+
+  /// Optional filter: should [builder] rebuild?
+  final GetCondition<S>? buildWhen;
 
   @override
-  State<GetConsumer<T>> createState() => _GetConsumerState<T>();
+  State<GetConsumer<S>> createState() => _GetConsumerState<S>();
 }
 
-class _GetConsumerState<T> extends State<GetConsumer<T>> {
-  Worker? _worker;
+class _GetConsumerState<S extends RxState> extends State<GetConsumer<S>> {
+  late final Rx<S> _rx;
+  late S _lastState;
 
   @override
   void initState() {
     super.initState();
-    _worker = ever<T>(widget.valueRx, (value) {
-      if (mounted) {
-        widget.listener.call(context, value);
-      }
-    });
+    if (widget.controller is RxCubit<S>) {
+      _rx = (widget.controller as RxCubit<S>).rx;
+    } else if (widget.controller is RxBloc<dynamic, S>) {
+      _rx = (widget.controller as RxBloc<dynamic, S>).rx;
+    } else {
+      throw Exception(
+        'GetConsumer requires RxCubit<$S> or RxBloc<Event, $S>',
+      );
+    }
+    _lastState = _rx.value;
   }
-
-  @override
-  void dispose() {
-    _worker?.dispose();
-    super.dispose();
-  }
-
 
   @override
   Widget build(BuildContext context) {
-    return GetX<GetxController>(
-      init: widget.controller,
-      builder: (_) {
-        final currentValue = widget.valueRx.value;
-        return widget.builder(context, currentValue);
-      },
-    );
+    return Obx(() {
+      final state = _rx.value;
+
+      // Run listener if condition matches
+      final shouldListen = widget.listenWhen?.call(_lastState, state) ?? true;
+      if (shouldListen && state != _lastState) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) widget.listener(context, state);
+        });
+      }
+
+      // Decide if we should rebuild UI
+      final shouldBuild = widget.buildWhen?.call(_lastState, state) ?? true;
+      _lastState = state;
+
+      if (shouldBuild) {
+        return widget.builder(context, state);
+      } else {
+        // Keep old UI
+        return widget.builder(context, _lastState);
+      }
+    });
   }
 }
