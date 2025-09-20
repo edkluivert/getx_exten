@@ -68,13 +68,13 @@ class _MyHomePageState extends State<MyHomePage> {
         listener: (BuildContext context, RxState state) {  },
         builder: (context, state) {
           if (state is RxLoading) {
-            return const CircularProgressIndicator();
+            return const Center(child: CircularProgressIndicator());
           } else if (state is RxSuccess<List<String>>) {
             return Column(
               children: state.data.map((e) => Text(e)).toList(),
             );
           } else if (state is RxError) {
-            return Text("Error: ${state.message}");
+            return Center(child: Text("Error: ${state.message}"));
           }
           return const Text("Press fetch to load items");
         },

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:getx_exten/utils/base_state.dart';
 import '../utils/emit.dart';
 
-
 typedef GetWidgetBuilder<S extends RxState> = Widget Function(
     BuildContext context,
     S state,
@@ -46,6 +45,7 @@ class GetConsumer<S extends RxState> extends StatefulWidget {
 class _GetConsumerState<S extends RxState> extends State<GetConsumer<S>> {
   late final Rx<S> _rx;
   late S _lastState;
+  bool _isFirstBuild = true;
 
   @override
   void initState() {
@@ -55,36 +55,38 @@ class _GetConsumerState<S extends RxState> extends State<GetConsumer<S>> {
     } else if (widget.controller is RxBloc<dynamic, S>) {
       _rx = (widget.controller as RxBloc<dynamic, S>).rx;
     } else {
-      throw Exception(
-        'GetConsumer requires RxCubit<$S> or RxBloc<Event, $S>',
-      );
+      throw Exception('GetConsumer requires RxCubit<$S> or RxBloc<Event, $S>');
     }
     _lastState = _rx.value;
+    // Call listener for the initial state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.listener(context, _lastState);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final state = _rx.value;
-
-      // Run listener if condition matches
+      // Update _lastState before any checks
       final shouldListen = widget.listenWhen?.call(_lastState, state) ?? true;
-      if (shouldListen && state != _lastState) {
+      final shouldBuild = widget.buildWhen?.call(_lastState, state) ?? true;
+
+      if (shouldListen && !_isFirstBuild) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) widget.listener(context, state);
         });
       }
 
-      // Decide if we should rebuild UI
-      final shouldBuild = widget.buildWhen?.call(_lastState, state) ?? true;
-      _lastState = state;
-
       if (shouldBuild) {
+        _lastState = state;
+        if (_isFirstBuild) _isFirstBuild = false;
         return widget.builder(context, state);
       } else {
-        // Keep old UI
         return widget.builder(context, _lastState);
       }
     });
   }
 }
+
+
