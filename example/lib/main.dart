@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getx_exten/get_consumer/get_consumer.dart';
 import 'package:getx_exten/getx_exten.dart';
-import 'package:getx_exten/utils/base_state.dart';
+
 
 
 void main() {
@@ -63,17 +63,17 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Counter Example')),
-      body: GetConsumer<RxState>(
+      body: GetConsumer<ApiState>(
         controller: apiController ,
-        listener: (BuildContext context, RxState state) {  },
+        listener: (BuildContext context, state) {  },
         builder: (context, state) {
-          if (state is RxLoading) {
+          if (state is ApiLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is RxSuccess<List<String>>) {
+          } else if (state is ApiSuccess<List<String>>) {
             return Column(
               children: state.data.map((e) => Text(e)).toList(),
             );
-          } else if (state is RxError) {
+          } else if (state is ApiError) {
             return Center(child: Text("Error: ${state.message}"));
           }
           return const Text("Press fetch to load items");

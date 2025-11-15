@@ -1,66 +1,61 @@
-import 'package:flutter/widgets.dart';
-import 'package:get/get.dart';
-import 'package:getx_exten/utils/base_state.dart';
-import '../utils/emit.dart';
+import 'package:getx_exten/getx_exten.dart';
 
-typedef GetWidgetBuilder<S extends RxState> = Widget Function(
-    BuildContext context,
-    S state,
-    );
-
-typedef GetListener<S extends RxState> = void Function(
-    BuildContext context,
-    S state,
-    );
-
-typedef GetCondition<S extends RxState> = bool Function(
-    S previous,
-    S current,
-    );
-
-class GetConsumer<S extends RxState> extends StatefulWidget {
+/// Consumer widget that both listens and rebuilds
+/// Can work with RxCubit, RxBloc, or any Rx<T>
+class GetConsumer<S> extends StatefulWidget {
   const GetConsumer({
     required this.builder,
     required this.listener,
-    required this.controller,
+    this.rx,
+    this.controller,
     this.listenWhen,
     this.buildWhen,
     super.key,
-  });
+  }) : assert(
+  (rx != null) ^ (controller != null),
+  'Provide either rx or controller, but not both',
+  );
 
   final GetWidgetBuilder<S> builder;
   final GetListener<S> listener;
+  final Rx<S>? rx;
   final dynamic controller;
-
-  /// Optional filter: should [listener] be called?
   final GetCondition<S>? listenWhen;
-
-  /// Optional filter: should [builder] rebuild?
   final GetCondition<S>? buildWhen;
 
   @override
   State<GetConsumer<S>> createState() => _GetConsumerState<S>();
 }
 
-class _GetConsumerState<S extends RxState> extends State<GetConsumer<S>> {
+class _GetConsumerState<S> extends State<GetConsumer<S>> {
   late final Rx<S> _rx;
-  late S _lastState;
+  late S _lastBuiltState;
+  late S _lastListenedState;
   bool _isFirstBuild = true;
+  Widget? _cachedWidget;
+
+  Rx<S> _getRx() {
+    if (widget.rx != null) return widget.rx!;
+
+    if (widget.controller is RxCubit<S>) {
+      return (widget.controller as RxCubit<S>).rx;
+    } else if (widget.controller is RxBloc<dynamic, S>) {
+      return (widget.controller as RxBloc<dynamic, S>).rx;
+    } else {
+      throw Exception('GetConsumer requires Rx<$S>, RxCubit<$S> or RxBloc<Event, $S>');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    if (widget.controller is RxCubit<S>) {
-      _rx = (widget.controller as RxCubit<S>).rx;
-    } else if (widget.controller is RxBloc<dynamic, S>) {
-      _rx = (widget.controller as RxBloc<dynamic, S>).rx;
-    } else {
-      throw Exception('GetConsumer requires RxCubit<$S> or RxBloc<Event, $S>');
-    }
-    _lastState = _rx.value;
+    _rx = _getRx();
+    _lastBuiltState = _rx.value;
+    _lastListenedState = _rx.value;
+
     // Call listener for the initial state
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.listener(context, _lastState);
+      if (mounted) widget.listener(context, _lastListenedState);
     });
   }
 
@@ -68,25 +63,25 @@ class _GetConsumerState<S extends RxState> extends State<GetConsumer<S>> {
   Widget build(BuildContext context) {
     return Obx(() {
       final state = _rx.value;
-      // Update _lastState before any checks
-      final shouldListen = widget.listenWhen?.call(_lastState, state) ?? true;
-      final shouldBuild = widget.buildWhen?.call(_lastState, state) ?? true;
+      final shouldListen = widget.listenWhen?.call(_lastListenedState, state) ?? true;
+      final shouldBuild = widget.buildWhen?.call(_lastBuiltState, state) ?? true;
 
       if (shouldListen && !_isFirstBuild) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) widget.listener(context, state);
         });
+        _lastListenedState = state;
       }
 
       if (shouldBuild) {
-        _lastState = state;
+        _lastBuiltState = state;
         if (_isFirstBuild) _isFirstBuild = false;
-        return widget.builder(context, state);
+        _cachedWidget = widget.builder(context, state);
+        return _cachedWidget!;
       } else {
-        return widget.builder(context, _lastState);
+        if (_isFirstBuild) _isFirstBuild = false;
+        return _cachedWidget ?? widget.builder(context, _lastBuiltState);
       }
     });
   }
 }
-
-

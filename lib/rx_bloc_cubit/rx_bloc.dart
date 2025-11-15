@@ -1,38 +1,10 @@
-import 'package:get/get.dart';
-
-import 'package:get/get.dart';
-import 'package:getx_exten/utils/base_state.dart';
-
-abstract class RxCubit<S extends RxState> extends GetxController {
-  RxCubit(S initialState) {
-    _state = initialState.obs;
-  }
-
-  late final Rx<S> _state;
-
-  /// Current state
-  S get state => _state.value;
-
-  /// Exposed observable for widgets to listen to
-  Rx<S> get rx => _state;
-
-  /// Emit a new state
-  void emit(S newState) {
-    _state.value = newState;
-    onChange(newState);
-  }
-
-  /// Optional lifecycle hook
-  void onChange(S state) {}
-}
-
-
+import 'package:getx_exten/getx_exten.dart';
 
 typedef Emitter<S> = void Function(S state);
-
 typedef EventHandler<E, S> = Future<void> Function(E event, Emitter<S> emit);
 
-abstract class RxBloc<E, S extends RxState> extends GetxController {
+/// Base Bloc that works with any state type
+abstract class RxBloc<E, S> extends GetxController {
   RxBloc(S initialState) {
     _state = initialState.obs;
   }
@@ -60,5 +32,3 @@ abstract class RxBloc<E, S extends RxState> extends GetxController {
     }
   }
 }
-
-

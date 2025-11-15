@@ -1,81 +1,138 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/utils/base_state.dart';
-import 'package:getx_exten/utils/emit.dart';
 import 'package:getx_exten/get_consumer/get_consumer.dart';
 
-class CounterState extends RxState {
-  final int value;
-  const CounterState(this.value);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is CounterState &&
-              runtimeType == other.runtimeType &&
-              value == other.value;
-
-  @override
-  int get hashCode => value.hashCode;
-}
-
-class CounterCubit extends RxCubit<CounterState> {
-  CounterCubit() : super(const CounterState(0));
-  void increment() => emit(CounterState(state.value + 1));
-}
+import 'rx_cubit_test.dart';
 
 void main() {
-  testWidgets('GetConsumer rebuilds UI and calls listener', (tester) async {
-    // Initialize Flutter binding
-    TestWidgetsFlutterBinding.ensureInitialized();
-    // Enable test mode for GetX
-    Get.testMode = true;
-    // Register the cubit
-    final cubit = CounterCubit();
-    Get.put<CounterCubit>(cubit);
+  group('GetConsumer', () {
+    testWidgets('triggers listener and rebuilds on state change', (tester) async {
+      final rx = 0.obs;
+      final listenedValues = <int>[];
 
-    int? listenedValue;
-
-    await tester.pumpWidget(
-      GetMaterialApp(
-        home: Scaffold(
-          body: GetConsumer<CounterState>(
-            controller: cubit,
-            listenWhen: (prev, curr) => curr.value % 2 == 0,
-            buildWhen: (prev, curr) => curr.value % 2 == 0,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GetConsumer<int>(
+            rx: rx,
             listener: (context, state) {
-              listenedValue = state.value;
+              listenedValues.add(state);
+            },
+            builder: (context, state) => Text('$state'),
+          ),
+        ),
+      );
+
+      // Initial listener call
+      await tester.pump();
+      expect(listenedValues, [0]);
+      expect(find.text('0'), findsOneWidget);
+
+      rx.value = 1;
+      await tester.pump();
+      expect(listenedValues, [0, 1]);
+      expect(find.text('1'), findsOneWidget);
+    });
+
+    testWidgets('respects buildWhen condition', (tester) async {
+      final rx = 0.obs;
+      final listenedValues = <int>[];
+      int buildCount = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GetConsumer<int>(
+            rx: rx,
+            buildWhen: (prev, curr) => curr % 2 == 0,
+            listener: (context, state) {
+              listenedValues.add(state);
             },
             builder: (context, state) {
-              return Text(
-                'Count: ${state.value}',
-                key: const ValueKey('counter-text'),
-              );
+              buildCount++;
+              return Text('$state');
             },
           ),
         ),
-      ),
-    );
+      );
 
-    // Pump and settle to ensure all frames are rendered
-    await tester.pumpAndSettle();
+      await tester.pump();
+      expect(buildCount, 1);
+      expect(listenedValues, [0]);
 
-    // Verify initial render (value = 0, which is even)
-    expect(find.byKey(const ValueKey('counter-text')), findsOneWidget);
-    expect(find.text('Count: 0'), findsOneWidget);
-    expect(listenedValue, 0); // Listener should be called for initial state
+      rx.value = 1; // Odd - should not rebuild but should listen
+      await tester.pump();
+      expect(buildCount, 1); // No rebuild
+      expect(listenedValues, [0, 1]); // But listened
+      expect(find.text('0'), findsOneWidget); // Shows old value
 
-    // Increment once (value = 1) → blocked by conditions
-    cubit.increment();
-    await tester.pumpAndSettle();
-    expect(find.text('Count: 0'), findsOneWidget); // UI should not update
-    expect(listenedValue, 0); // Listener should not be called again
+      rx.value = 2; // Even - should rebuild and listen
+      await tester.pump();
+      expect(buildCount, 2);
+      expect(listenedValues, [0, 1, 2]);
+      expect(find.text('2'), findsOneWidget);
+    });
 
-    // Increment again (value = 2) → allowed
-    cubit.increment();
-    await tester.pumpAndSettle();
-    expect(find.text('Count: 2'), findsOneWidget); // UI should update
-    expect(listenedValue, 2); // Listener should be called
+    testWidgets('respects listenWhen condition', (tester) async {
+      final rx = 0.obs;
+      final listenedValues = <int>[];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GetConsumer<int>(
+            rx: rx,
+            listenWhen: (prev, curr) => curr % 2 == 0,
+            listener: (context, state) {
+              listenedValues.add(state);
+            },
+            builder: (context, state) => Text('$state'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      expect(listenedValues, [0]); // Initial
+
+      rx.value = 1; // Odd - should not listen
+      await tester.pump();
+      expect(listenedValues, [0]); // No new value
+      expect(find.text('1'), findsOneWidget); // But still rebuilds
+
+      rx.value = 2; // Even - should listen
+      await tester.pump();
+      expect(listenedValues, [0, 2]);
+      expect(find.text('2'), findsOneWidget);
+    });
+
+    testWidgets('works with cubit', (tester) async {
+      final cubit = TestCubit();
+      Get.put(cubit);
+      final listenedValues = <int>[];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GetConsumer<int>(
+            controller: cubit,
+            listener: (context, state) {
+              listenedValues.add(state);
+            },
+            builder: (context, state) => Text('$state'),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      expect(listenedValues, [0]);
+      expect(find.text('0'), findsOneWidget);
+
+      cubit.increment();
+      await tester.pump();
+      expect(listenedValues, [0, 1]);
+      expect(find.text('1'), findsOneWidget);
+
+      Get.delete<TestCubit>();
+    });
   });
 }
+
+

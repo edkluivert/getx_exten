@@ -1,22 +1,31 @@
 
-import 'package:getx_exten/utils/base_state.dart';
-import 'package:getx_exten/utils/emit.dart';
+import 'package:equatable/equatable.dart';
+import 'package:example/app_state.dart';
+import 'package:getx_exten/rx_bloc_cubit/rx_cubit.dart';
 
 
-/// Base counter state
-abstract class CounterState extends RxState {
+
+abstract class CounterState extends Equatable{
   final int value;
   const CounterState(this.value);
 }
 
-/// Initial state (count = 0)
+
 class CounterInitial extends CounterState {
   const CounterInitial() : super(0);
+
+  @override
+
+  List<Object?> get props => [];
 }
 
 /// Updated state with a value
 class CounterValue extends CounterState {
   const CounterValue(int value) : super(value);
+
+  @override
+
+  List<Object?> get props => [];
 }
 
 class MyController extends RxCubit<CounterState> {
@@ -28,8 +37,8 @@ class MyController extends RxCubit<CounterState> {
 }
 
 
-class ApiController extends RxCubit<RxState> {
-  ApiController() : super(const RxInitial());
+class ApiController extends RxCubit<ApiState> {
+  ApiController() : super(const ApiInitial());
 
   @override
   void onInit(){
@@ -38,13 +47,13 @@ class ApiController extends RxCubit<RxState> {
   }
 
   Future<void> fetchItems() async {
-    emit(const RxLoading());
+    emit(const ApiLoading());
     await Future.delayed(const Duration(seconds: 2));
     try {
       final items = ["Apple", "Banana", "Mango"];
-      emit(RxSuccess(items));
+      emit(ApiSuccess(items));
     } catch (e) {
-      emit(const RxError("Failed to fetch data"));
+      emit(const ApiError("Failed to fetch data"));
     }
   }
 }
