@@ -3,30 +3,25 @@ import 'package:equatable/equatable.dart';
 import 'package:example/app_state.dart';
 import 'package:getx_exten/rx_bloc_cubit/rx_cubit.dart';
 
-
-
-abstract class CounterState extends Equatable{
+abstract class CounterState extends Equatable {
   final int value;
   const CounterState(this.value);
 }
-
 
 class CounterInitial extends CounterState {
   const CounterInitial() : super(0);
 
   @override
-
-  List<Object?> get props => [];
+  List<Object?> get props => [value];
 }
 
-/// Updated state with a value
 class CounterValue extends CounterState {
-  const CounterValue(int value) : super(value);
+  const CounterValue(super.value);
 
   @override
-
-  List<Object?> get props => [];
+  List<Object?> get props => [value];
 }
+
 
 class MyController extends RxCubit<CounterState> {
   MyController() : super(const CounterInitial());

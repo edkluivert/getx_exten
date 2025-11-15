@@ -59,19 +59,55 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final ApiController apiController = Get.put(ApiController());
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Counter Example')),
       body: GetConsumer<ApiState>(
-        controller: apiController ,
-        listener: (BuildContext context, state) {  },
+        controller: apiController,
+        listener: (BuildContext context, state) {
+
+        },
         builder: (context, state) {
           if (state is ApiLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is ApiSuccess<List<String>>) {
+          } else if (state is ApiSuccess) {
             return Column(
-              children: state.data.map((e) => Text(e)).toList(),
+              children: [
+                Column(
+                  children: state.data.map((e) => Text(e)).toList(),
+                ),
+                 Center(
+                  child: GetConsumer<CounterState>(
+                    controller: controller,
+                    listenWhen: (previous, current) =>  current.value % 2 == 0,
+                    buildWhen: (previous, current) => current.value % 2 == 0,
+                    listener: (context, state) {
+                      if (state is CounterValue ) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("You reached ${state.value}! 🎉")),
+                        );
+                      }
+                    },
+                    builder: (context, state) {
+                      if (state is CounterInitial) {
+                        return const Text(
+                          "Press the + button to start",
+                          style: TextStyle(fontSize: 20),
+                        );
+                      } else if (state is CounterValue) {
+                        return Text(
+                          "Count: ${state.value}",
+                          style: const TextStyle(fontSize: 30),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+              ],
             );
           } else if (state is ApiError) {
             return Center(child: Text("Error: ${state.message}"));
@@ -79,36 +115,10 @@ class _MyHomePageState extends State<MyHomePage> {
           return const Text("Press fetch to load items");
         },
       ),
-      // body: Center(
-      //   child: GetConsumer<CounterState>(
-      //     controller: controller,
-      //     listenWhen: (previous, current) =>  current.value % 2 == 0,
-      //     buildWhen: (previous, current) => current.value % 2 == 0,
-      //     listener: (context, state) {
-      //       if (state is CounterValue ) {
-      //         ScaffoldMessenger.of(context).showSnackBar(
-      //           SnackBar(content: Text("You reached ${state.value}! 🎉")),
-      //         );
-      //       }
-      //     },
-      //     builder: (context, state) {
-      //       if (state is CounterInitial) {
-      //         return const Text(
-      //           "Press the + button to start",
-      //           style: TextStyle(fontSize: 20),
-      //         );
-      //       } else if (state is CounterValue) {
-      //         return Text(
-      //           "Count: ${state.value}",
-      //           style: const TextStyle(fontSize: 30),
-      //         );
-      //       }
-      //       return const SizedBox();
-      //     },
-      //   ),
-      // ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: controller.increment,
+        backgroundColor: Colors.blue,
         child: const Icon(Icons.add),
       ),
     );

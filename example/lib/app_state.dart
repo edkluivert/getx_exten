@@ -1,27 +1,27 @@
 import 'package:equatable/equatable.dart';
 
-abstract class ApiState<T> extends Equatable {
+abstract class ApiState extends Equatable {
   const ApiState();
 
   @override
   List<Object?> get props => [];
 }
-class ApiInitial<T> extends ApiState<T> {
+class ApiInitial extends ApiState{
   const ApiInitial();
 }
-class ApiLoading<T> extends ApiState<T> {
+class ApiLoading extends ApiState {
   const ApiLoading();
 }
 
-class ApiSuccess<T> extends ApiState<T> {
-  final T data;
+class ApiSuccess extends ApiState {
+  final List<String> data;
   const ApiSuccess(this.data);
 
   @override
   List<Object?> get props => [data];
 }
 
-class ApiError<T> extends ApiState<T> {
+class ApiError extends ApiState {
   final String message;
   const ApiError(this.message);
 
