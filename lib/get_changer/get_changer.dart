@@ -1,7 +1,7 @@
 import 'package:getx_exten/getx_exten.dart';
 
 /// Builder widget that rebuilds on state changes
-/// Can work with RxCubit, RxBloc, or any Rx<T>
+/// Can work with RxCubit, RxBloc, or any `Rx<T>`
 ///
 /// This method provides functionality for working with reactive programming patterns.
 /// [parameterName] is the reactive stream to work with.
