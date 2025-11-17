@@ -21,7 +21,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  getx_exten: ^2.0.0
+  getx_exten: ^2.0.2
   get: ^4.6.5
 ```
 
