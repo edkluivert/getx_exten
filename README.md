@@ -21,7 +21,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  getx_exten: ^2.0.3
+  getx_exten: ^2.0.4
   get: ^4.6.5
 ```
 
@@ -48,7 +48,7 @@ class CounterPage extends StatelessWidget {
     
     return Scaffold(
       body: Center(
-        child: GetChanger<int>(
+        child: RxBuilder<int>(
           controller: cubit,
           builder: (context, count) => Text('Count: $count'),
         ),
@@ -147,18 +147,18 @@ bloc.add(AddValue(5));
 
 ## 🎨 Widgets
 
-### GetChanger - Simple Builder
+### RxBuilder - Simple Builder
 
 Rebuilds when state changes. Perfect for displaying state.
 
 ```dart
-GetChanger<int>(
+RxBuilder<int>(
   controller: counterCubit,
   builder: (context, count) => Text('$count'),
 )
 
 // With buildWhen condition
-GetChanger<int>(
+RxBuilder<int>(
   controller: counterCubit,
   buildWhen: (prev, curr) => curr % 2 == 0, // Only rebuild on even numbers
   builder: (context, count) => Text('$count'),
@@ -166,18 +166,18 @@ GetChanger<int>(
 
 // With direct Rx
 final count = 0.obs;
-GetChanger<int>(
+RxBuilder<int>(
   rx: count,
   builder: (context, value) => Text('$value'),
 )
 ```
 
-### GetListenerWidget - Side Effects Only
+### RxListener - Side Effects Only
 
 Listens to state without rebuilding. Perfect for navigation, snackbars, dialogs.
 
 ```dart
-GetListenerWidget<int>(
+RxListener<int>(
   controller: counterCubit,
   listener: (context, count) {
     if (count > 10) {
@@ -190,7 +190,7 @@ GetListenerWidget<int>(
 )
 
 // With listenWhen condition
-GetListenerWidget<int>(
+RxListener<int>(
   controller: counterCubit,
   listenWhen: (prev, curr) => curr > prev, // Only listen on increase
   listener: (context, count) {
@@ -200,12 +200,12 @@ GetListenerWidget<int>(
 )
 ```
 
-### GetConsumer - Builder + Listener
+### RxConsumer - Builder + Listener
 
 Combines building and listening. Perfect for complex UI with side effects.
 
 ```dart
-GetConsumer<int>(
+RxConsumer<int>(
   controller: counterCubit,
   listener: (context, count) {
     // Side effects
@@ -220,7 +220,7 @@ GetConsumer<int>(
 )
 
 // With independent conditions
-GetConsumer<int>(
+RxConsumer<int>(
   controller: counterCubit,
   listenWhen: (prev, curr) => curr % 5 == 0, // Listen every 5
   buildWhen: (prev, curr) => curr % 2 == 0,  // Build every 2
@@ -229,7 +229,7 @@ GetConsumer<int>(
 )
 ```
 
-### GetSelector - Fine-Grained Reactivity
+### RxSelector - Fine-Grained Reactivity
 
 Only rebuilds when the selected value changes. HUGE performance boost!
 
@@ -250,7 +250,7 @@ class UserCubit extends RxCubit<UserState> {
 }
 
 // Only rebuilds when NAME changes (not age or hobbies!)
-GetSelector<UserState, String>(
+RxSelector<UserState, String>(
   controller: userCubit,
   selector: (state) => state.name,
   builder: (context, name) => Text('Name: $name'),
@@ -263,19 +263,19 @@ userCubit.select(
 )
 
 // With primitive selectors
-GetSelector<int, bool>(
+RxSelector<int, bool>(
   controller: counterCubit,
   selector: (count) => count > 10,
   builder: (context, isHigh) => Text(isHigh ? 'High' : 'Low'),
 )
 ```
 
-### GetMultiChanger - Multiple Sources
+### RxMultiBuilder - Multiple Sources
 
 Reacts to multiple state sources. Perfect for combining different cubits.
 
 ```dart
-GetMultiChanger(
+RxMultiBuilder(
   sources: [
     Get.find<CartCubit>().rx,
     Get.find<PriceCubit>().rx,
@@ -292,7 +292,7 @@ GetMultiChanger(
 final userCubit = Get.find<UserCubit>();
 final count = 0.obs;
 
-GetMultiChanger(
+RxMultiBuilder(
   sources: [userCubit.rx, count],
   builder: (context) => Text('${userCubit.state.name}: ${count.value}'),
 )
@@ -340,7 +340,7 @@ class AuthCubit extends RxCubit<AuthState> {
 ### Pattern Matching with Sealed Classes
 
 ```dart
-GetChanger<AuthState>(
+RxBuilder<AuthState>(
   controller: authCubit,
   builder: (context, state) {
     return switch (state) {
@@ -384,7 +384,7 @@ class MyController extends GetxController {
 ### Combining Multiple Conditions
 
 ```dart
-GetConsumer<TodoState>(
+RxConsumer<TodoState>(
   controller: todoCubit,
   // Rebuild only when todos list changes
   buildWhen: (prev, curr) => prev.todos.length != curr.todos.length,
@@ -412,14 +412,14 @@ GetConsumer<TodoState>(
 ### 1. Use the Right Widget for the Job
 
 ```dart
-// ✅ Good - Use GetChanger for simple display
-GetChanger<int>(
+// ✅ Good - Use RxBuilder for simple display
+RxBuilder<int>(
   controller: cubit,
   builder: (context, count) => Text('$count'),
 )
 
-// ✅ Good - Use GetListenerWidget for side effects
-GetListenerWidget<String>(
+// ✅ Good - Use RxListener for side effects
+RxListener<String>(
   controller: messageCubit,
   listener: (context, message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -429,8 +429,8 @@ GetListenerWidget<String>(
   child: MyWidget(),
 )
 
-// ❌ Bad - Don't use GetConsumer when you only need building
-GetConsumer<int>(
+// ❌ Bad - Don't use RxConsumer when you only need building
+RxConsumer<int>(
   controller: cubit,
   listener: (context, count) {}, // Empty listener
   builder: (context, count) => Text('$count'),
@@ -441,13 +441,13 @@ GetConsumer<int>(
 
 ```dart
 // ❌ Bad - Rebuilds when ANY field changes
-GetChanger<UserState>(
+RxBuilder<UserState>(
   controller: userCubit,
   builder: (context, state) => Text(state.name),
 )
 
 // ✅ Good - Only rebuilds when name changes
-GetSelector<UserState, String>(
+RxSelector<UserState, String>(
   controller: userCubit,
   selector: (state) => state.name,
   builder: (context, name) => Text(name),
@@ -467,7 +467,7 @@ class MyController extends GetxController {
 }
 
 // Use directly
-GetChanger<int>(
+RxBuilder<int>(
   rx: controller.count,
   builder: (context, count) => Text('$count'),
 )
@@ -509,7 +509,7 @@ class _MyPageState extends State<MyPage> {
   
   @override
   Widget build(BuildContext context) {
-    return GetChanger<int>(
+    return RxBuilder<int>(
       controller: cubit,
       builder: (context, count) => Text('$count'),
     );
@@ -522,12 +522,12 @@ class _MyPageState extends State<MyPage> {
 All widgets are fully testable:
 
 ```dart
-testWidgets('GetChanger rebuilds on state change', (tester) async {
+testWidgets('RxBuilder rebuilds on state change', (tester) async {
   final cubit = CounterCubit();
   
   await tester.pumpWidget(
     MaterialApp(
-      home: GetChanger<int>(
+      home: RxBuilder<int>(
         controller: cubit,
         builder: (context, count) => Text('$count'),
       ),
@@ -549,7 +549,7 @@ testWidgets('GetChanger rebuilds on state change', (tester) async {
 |---------|----------------|--------------|------------|
 | Type Flexibility | ✅ Any type | ✅ Any type | ✅ Any type |
 | Fine-grained Selectors | ✅ Built-in | ✅ Via BlocSelector | ❌ Manual |
-| Multi-source Reactivity | ✅ GetMultiChanger | ❌ Manual | ✅ Obx |
+| Multi-source Reactivity | ✅ RxMultiBuilder | ❌ Manual | ✅ Obx |
 | Performance | ⚡ Excellent | ⚡ Excellent | ⚡ Excellent |
 | Boilerplate | 🟢 Low | 🟡 Medium | 🟢 Low |
 | Learning Curve | 🟢 Easy | 🟡 Medium | 🟢 Easy |

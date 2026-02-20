@@ -1,18 +1,22 @@
-import 'package:getx_exten/getx_exten.dart';
+import 'package:get/get.dart';
+import 'package:flutter/widgets.dart';
+import 'package:getx_exten/src/types/types.dart';
+import 'package:getx_exten/src/state/rx_bloc_cubit/rx_cubit.dart';
+import 'package:getx_exten/src/state/rx_bloc_cubit/rx_bloc.dart';
 
 /// Selector widget that rebuilds only when selected value changes
 /// Leverages GetX reactivity for fine-grained updates
-class GetSelector<S, T> extends StatefulWidget {
-  const GetSelector({
+class RxSelector<S, T> extends StatefulWidget {
+  const RxSelector({
     required this.selector,
     required this.builder,
     this.rx,
     this.controller,
     super.key,
   }) : assert(
-  (rx != null) ^ (controller != null),
-  'Provide either rx or controller, but not both',
-  );
+          (rx != null) ^ (controller != null),
+          'Provide either rx or controller, but not both',
+        );
 
   final T Function(S state) selector;
   final Widget Function(BuildContext context, T value) builder;
@@ -20,10 +24,10 @@ class GetSelector<S, T> extends StatefulWidget {
   final dynamic controller;
 
   @override
-  State<GetSelector<S, T>> createState() => _GetSelectorState<S, T>();
+  State<RxSelector<S, T>> createState() => _RxSelectorState<S, T>();
 }
 
-class _GetSelectorState<S, T> extends State<GetSelector<S, T>> {
+class _RxSelectorState<S, T> extends State<RxSelector<S, T>> {
   late final Rx<S> _rx;
   late T _currentValue;
   Worker? _worker;
@@ -36,7 +40,8 @@ class _GetSelectorState<S, T> extends State<GetSelector<S, T>> {
     } else if (widget.controller is RxBloc<dynamic, S>) {
       return (widget.controller as RxBloc<dynamic, S>).rx;
     } else {
-      throw Exception('GetSelector requires Rx<$S>, RxCubit<$S> or RxBloc<Event, $S>');
+      throw Exception(
+          'RxSelector requires Rx<$S>, RxCubit<$S> or RxBloc<Event, $S>');
     }
   }
 

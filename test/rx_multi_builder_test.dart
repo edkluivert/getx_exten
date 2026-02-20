@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/get_multi_changer/get_multi_changer.dart';
+import 'package:getx_exten/getx_exten.dart';
 
 import 'rx_cubit_test.dart';
 
 void main() {
-  group('GetMultiChanger', () {
+  group('RxMultiBuilder', () {
     testWidgets('rebuilds when any source changes', (tester) async {
       final rx1 = 0.obs;
       final rx2 = 'A'.obs;
@@ -14,7 +14,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetMultiChanger(
+          home: RxMultiBuilder(
             sources: [rx1, rx2],
             builder: (context) {
               buildCount++;
@@ -57,7 +57,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetMultiChanger(
+          home: RxMultiBuilder(
             sources: [cubit1.rx, cubit2.rx],
             builder: (context) {
               buildCount++;
@@ -89,7 +89,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetMultiChanger(
+          home: RxMultiBuilder(
             sources: [],
             builder: (context) {
               buildCount++;

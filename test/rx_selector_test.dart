@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/get_selector/get_selector.dart';
+import 'package:getx_exten/getx_exten.dart';
 
 import 'rx_cubit_test.dart';
 
 void main() {
-  group('GetSelector', () {
+  group('RxSelector', () {
     testWidgets('only rebuilds when selected value changes', (tester) async {
       final cubit = ComplexCubit();
       Get.put(cubit);
@@ -14,7 +14,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetSelector<TestState, String>(
+          home: RxSelector<TestState, String>(
             controller: cubit,
             selector: (state) => state.name,
             builder: (context, name) {
@@ -55,7 +55,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetSelector<TestState, int>(
+          home: RxSelector<TestState, int>(
             rx: state,
             selector: (s) => s.age,
             builder: (context, age) {
@@ -88,7 +88,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetSelector<int, bool>(
+          home: RxSelector<int, bool>(
             rx: rx,
             selector: (value) => value > 10,
             builder: (context, isHigh) {
@@ -116,5 +116,3 @@ void main() {
     });
   });
 }
-
-

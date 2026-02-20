@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:getx_exten/get_selector/get_selector.dart';
-import 'package:getx_exten/utils/rx_extensions.dart';
+import 'package:getx_exten/getx_exten.dart';
 
 import 'rx_bloc_test.dart';
 import 'rx_cubit_test.dart';
 
 void main() {
   group('RxCubit Extensions', () {
-    test('select creates GetSelector widget', () {
+    test('select creates RxSelector widget', () {
       final cubit = ComplexCubit();
 
       final selector = cubit.select(
-            (state) => state.name,
-            (context, name) => Text(name),
+        (state) => state.name,
+        (context, name) => Text(name),
       );
 
-      expect(selector, isA<GetSelector<TestState, String>>());
+      expect(selector, isA<RxSelector<TestState, String>>());
     });
 
     test('watch creates Worker for state changes', () async {
@@ -42,15 +41,15 @@ void main() {
   });
 
   group('RxBloc Extensions', () {
-    test('select creates GetSelector widget', () {
+    test('select creates RxSelector widget', () {
       final bloc = TestBloc();
 
       final selector = bloc.select(
-            (state) => state > 10,
-            (context, isHigh) => Text(isHigh ? 'High' : 'Low'),
+        (state) => state > 10,
+        (context, isHigh) => Text(isHigh ? 'High' : 'Low'),
       );
 
-      expect(selector, isA<GetSelector<int, bool>>());
+      expect(selector, isA<RxSelector<int, bool>>());
     });
 
     test('watch creates Worker for state changes', () async {

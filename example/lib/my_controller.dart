@@ -1,7 +1,7 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:example/app_state.dart';
-import 'package:getx_exten/rx_bloc_cubit/rx_cubit.dart';
+import 'package:getx_exten/getx_exten.dart';
+
 
 abstract class CounterState extends Equatable {
   final int value;
@@ -22,7 +22,6 @@ class CounterValue extends CounterState {
   List<Object?> get props => [value];
 }
 
-
 class MyController extends RxCubit<CounterState> {
   MyController() : super(const CounterInitial());
 
@@ -31,12 +30,11 @@ class MyController extends RxCubit<CounterState> {
   void reset() => emit(const CounterInitial());
 }
 
-
 class ApiController extends RxCubit<ApiState> {
   ApiController() : super(const ApiInitial());
 
   @override
-  void onInit(){
+  void onInit() {
     super.onInit();
     fetchItems();
   }

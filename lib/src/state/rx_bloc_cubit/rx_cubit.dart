@@ -1,5 +1,4 @@
-import 'package:getx_exten/getx_exten.dart';
-
+import 'package:get/get.dart';
 
 /// Base Cubit that works with any state type
 abstract class RxCubit<S> extends GetxController {

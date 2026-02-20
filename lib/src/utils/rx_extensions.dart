@@ -1,13 +1,17 @@
-
-import 'package:getx_exten/getx_exten.dart';
+import 'package:get/get.dart';
+import 'package:flutter/widgets.dart';
+import 'package:getx_exten/src/types/types.dart';
+import 'package:getx_exten/src/state/rx_bloc_cubit/rx_cubit.dart';
+import 'package:getx_exten/src/state/rx_bloc_cubit/rx_bloc.dart';
+import 'package:getx_exten/src/widgets/rx_selector/rx_selector.dart';
 
 extension RxBlocExtensions<E, S> on RxBloc<E, S> {
   /// Create a selector that derives a value from state
-  GetSelector<S, T> select<T>(
-      T Function(S state) selector,
-      Widget Function(BuildContext context, T value) builder,
-      ) {
-    return GetSelector<S, T>(
+  RxSelector<S, T> select<T>(
+    T Function(S state) selector,
+    Widget Function(BuildContext context, T value) builder,
+  ) {
+    return RxSelector<S, T>(
       controller: this,
       selector: selector,
       builder: builder,
@@ -22,11 +26,11 @@ extension RxBlocExtensions<E, S> on RxBloc<E, S> {
 
 extension RxCubitExtensions<S> on RxCubit<S> {
   /// Create a selector that derives a value from state
-  GetSelector<S, T> select<T>(
-      T Function(S state) selector,
-      Widget Function(BuildContext context, T value) builder,
-      ) {
-    return GetSelector<S, T>(
+  RxSelector<S, T> select<T>(
+    T Function(S state) selector,
+    Widget Function(BuildContext context, T value) builder,
+  ) {
+    return RxSelector<S, T>(
       controller: this,
       selector: selector,
       builder: builder,

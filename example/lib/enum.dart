@@ -1,4 +1,3 @@
-
 /// A sealed class to represent the state of a request, carrying optional data or error information.
 abstract class RequestState<T> {
   const RequestState();

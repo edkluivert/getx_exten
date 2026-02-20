@@ -1,28 +1,13 @@
-import 'package:getx_exten/getx_exten.dart';
-
-
-typedef GetWidgetBuilder<S> = Widget Function(
-    BuildContext context,
-    S state,
-    );
-
-typedef GetCondition<S> = bool Function(
-    S previous,
-    S current,
-    );
-
-
-
-
-typedef GetListener<S> = void Function(
-    BuildContext context,
-    S state,
-    );
+import 'package:get/get.dart';
+import 'package:flutter/widgets.dart';
+import 'package:getx_exten/src/types/types.dart';
+import 'package:getx_exten/src/state/rx_bloc_cubit/rx_cubit.dart';
+import 'package:getx_exten/src/state/rx_bloc_cubit/rx_bloc.dart';
 
 /// Listener widget that doesn't rebuild, only listens
 /// Can work with RxCubit, RxBloc, or any Rx<T>
-class GetListenerWidget<S> extends StatefulWidget {
-  const GetListenerWidget({
+class RxListener<S> extends StatefulWidget {
+  const RxListener({
     required this.listener,
     required this.child,
     this.rx,
@@ -30,21 +15,21 @@ class GetListenerWidget<S> extends StatefulWidget {
     this.listenWhen,
     super.key,
   }) : assert(
-  (rx != null) ^ (controller != null),
-  'Provide either rx or controller, but not both',
-  );
+          (rx != null) ^ (controller != null),
+          'Provide either rx or controller, but not both',
+        );
 
-  final GetListener<S> listener;
+  final RxWidgetListener<S> listener;
   final Rx<S>? rx;
   final dynamic controller;
   final Widget child;
-  final GetCondition<S>? listenWhen;
+  final RxCondition<S>? listenWhen;
 
   @override
-  State<GetListenerWidget<S>> createState() => _GetListenerWidgetState<S>();
+  State<RxListener<S>> createState() => _RxListenerState<S>();
 }
 
-class _GetListenerWidgetState<S> extends State<GetListenerWidget<S>> {
+class _RxListenerState<S> extends State<RxListener<S>> {
   late final Rx<S> _rx;
   late S _lastState;
   Worker? _worker;
@@ -57,7 +42,8 @@ class _GetListenerWidgetState<S> extends State<GetListenerWidget<S>> {
     } else if (widget.controller is RxBloc<dynamic, S>) {
       return (widget.controller as RxBloc<dynamic, S>).rx;
     } else {
-      throw Exception('GetListenerWidget requires Rx<$S>, RxCubit<$S> or RxBloc<Event, $S>');
+      throw Exception(
+          'RxListener requires Rx<$S>, RxCubit<$S> or RxBloc<Event, $S>');
     }
   }
 
@@ -69,7 +55,8 @@ class _GetListenerWidgetState<S> extends State<GetListenerWidget<S>> {
 
     // Listen for future changes
     _worker = ever<S>(_rx, (newState) {
-      final shouldListen = widget.listenWhen?.call(_lastState, newState) ?? true;
+      final shouldListen =
+          widget.listenWhen?.call(_lastState, newState) ?? true;
 
       if (shouldListen && mounted) {
         widget.listener(context, newState);
@@ -88,14 +75,3 @@ class _GetListenerWidgetState<S> extends State<GetListenerWidget<S>> {
   @override
   Widget build(BuildContext context) => widget.child;
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/rx_bloc_cubit/rx_cubit.dart';
+import 'package:getx_exten/getx_exten.dart';
 
 class TestCubit extends RxCubit<int> {
   TestCubit() : super(0);
@@ -8,6 +8,7 @@ class TestCubit extends RxCubit<int> {
   void increment() => emit(state + 1);
   void decrement() => emit(state - 1);
 }
+
 class TestCubitWithOnChange extends RxCubit<int> {
   TestCubitWithOnChange(this.onChangeCallback) : super(0);
 
@@ -22,6 +23,7 @@ class TestCubitWithOnChange extends RxCubit<int> {
     onChangeCallback(state);
   }
 }
+
 class TestState {
   final String name;
   final int age;
@@ -31,7 +33,7 @@ class TestState {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is TestState && name == other.name && age == other.age;
+      other is TestState && name == other.name && age == other.age;
 
   @override
   int get hashCode => name.hashCode ^ age.hashCode;

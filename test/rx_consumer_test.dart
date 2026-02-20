@@ -1,20 +1,20 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/get_consumer/get_consumer.dart';
+import 'package:getx_exten/getx_exten.dart';
 
 import 'rx_cubit_test.dart';
 
 void main() {
-  group('GetConsumer', () {
-    testWidgets('triggers listener and rebuilds on state change', (tester) async {
+  group('RxConsumer', () {
+    testWidgets('triggers listener and rebuilds on state change',
+        (tester) async {
       final rx = 0.obs;
       final listenedValues = <int>[];
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetConsumer<int>(
+          home: RxConsumer<int>(
             rx: rx,
             listener: (context, state) {
               listenedValues.add(state);
@@ -42,7 +42,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetConsumer<int>(
+          home: RxConsumer<int>(
             rx: rx,
             buildWhen: (prev, curr) => curr % 2 == 0,
             listener: (context, state) {
@@ -79,7 +79,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetConsumer<int>(
+          home: RxConsumer<int>(
             rx: rx,
             listenWhen: (prev, curr) => curr % 2 == 0,
             listener: (context, state) {
@@ -111,7 +111,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetConsumer<int>(
+          home: RxConsumer<int>(
             controller: cubit,
             listener: (context, state) {
               listenedValues.add(state);
@@ -134,5 +134,3 @@ void main() {
     });
   });
 }
-
-

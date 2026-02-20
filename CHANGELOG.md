@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.3] - 2025-11-18
+## [2.0.4] - 2025-11-18
 
 ### 🎉 Major Release - Complete Architecture Overhaul
 
@@ -29,31 +29,31 @@ This release represents a complete rewrite of the package, removing tight coupli
     - Exposes `rx` property for direct reactive access
 
 #### Reactive Widgets
-- **`GetChanger<S>`** - Pure builder widget that rebuilds on state changes
+- **`RxBuilder<S>`** - Pure builder widget that rebuilds on state changes
     - Works with `Rx<T>`, `RxCubit<S>`, or `RxBloc<E, S>`
     - Optional `buildWhen` condition for fine-grained control
     - Optimized to prevent unnecessary builder calls
     - Uses `ever` worker for efficient state tracking
 
-- **`GetListenerWidget<S>`** - Side-effect widget without rebuilding
+- **`RxListener<S>`** - Side-effect widget without rebuilding
     - Executes listeners without triggering widget rebuilds
     - Optional `listenWhen` condition for selective listening
     - Perfect for navigation, snackbars, dialogs
     - Works with `Rx<T>`, `RxCubit<S>`, or `RxBloc<E, S>`
 
-- **`GetConsumer<S>`** - Combined listener and builder widget
+- **`RxConsumer<S>`** - Combined listener and builder widget
     - Independent `buildWhen` and `listenWhen` conditions
     - Calls listener on initial state
     - Optimized to prevent unnecessary rebuilds
     - Ideal for complex UI with side effects
 
-- **`GetSelector<S, T>`** - Fine-grained reactive builder
+- **`RxSelector<S, T>`** - Fine-grained reactive builder
     - Only rebuilds when selected value changes
     - Dramatically improves performance for large state objects
     - Works with any selector function
     - Prevents unnecessary rebuilds when unrelated state changes
 
-- **`GetMultiChanger`** - Multi-source reactive builder
+- **`RxMultiBuilder`** - Multi-source reactive builder
     - Reacts to changes from multiple `Rx` sources
     - Combines state from different cubits/blocs
     - Handles empty source lists gracefully
@@ -107,17 +107,17 @@ This release represents a complete rewrite of the package, removing tight coupli
 - **Widget constructors now require explicit source** - Must provide either `rx` or `controller`
     - **Before**: Only supported controller
   ```dart
-  GetConsumer<int>(controller: cubit, ...)
+  RxConsumer<int>(controller: cubit, ...)
   ```
     - **After**: Support both direct Rx and controllers
   ```dart
-  GetChanger<int>(rx: count.obs, ...)
-  GetChanger<int>(controller: cubit, ...)
+  RxBuilder<int>(rx: count.obs, ...)
+  RxBuilder<int>(controller: cubit, ...)
   ```
 
-- **Renamed `GetListener` to `GetListenerWidget`** - Clearer distinction from the typedef
-    - **Before**: `GetListener<S>(...)`
-    - **After**: `GetListenerWidget<S>(...)`
+- **Renamed `GetListener` to `RxListener`** - Clearer distinction from the typedef
+    - **Before**: `RxWidgetListener<S>(...)`
+    - **After**: `RxListener<S>(...)`
 
 #### Performance Improvements
 - Widgets now use `ever` workers instead of `Obx` for better control
@@ -132,10 +132,10 @@ This release represents a complete rewrite of the package, removing tight coupli
 - Examples for every widget and feature
 
 ### 🐛 Fixed
-- Fixed `buildWhen` not preventing builder calls in `GetChanger`
-- Fixed `listenWhen` and `buildWhen` interfering with each other in `GetConsumer`
-- Fixed `GetSelector` rebuilding on every state change
-- Fixed `GetMultiChanger` error when sources list is empty
+- Fixed `buildWhen` not preventing builder calls in `RxBuilder`
+- Fixed `listenWhen` and `buildWhen` interfering with each other in `RxConsumer`
+- Fixed `RxSelector` rebuilding on every state change
+- Fixed `RxMultiBuilder` error when sources list is empty
 - Fixed initial state handling in all widgets
 - Fixed memory leaks by properly disposing workers
 
@@ -157,7 +157,7 @@ This release represents a complete rewrite of the package, removing tight coupli
 ### Initial Release
 - Basic `RxCubit` with `RxState` requirement
 - Basic `RxBloc` with `RxState` requirement
-- `GetConsumer` widget
+- `RxConsumer` widget
 - `GetListener` widget
 - Generic state classes (`RxInitial`, `RxLoading`, `RxSuccess`, `RxError`)
 
@@ -199,14 +199,14 @@ class CounterCubit extends RxCubit<CounterState> {
 ### 2. Update widget names
 ```dart
 // Before (1.x)
-GetListener<MyState>(
+RxWidgetListener<MyState>(
 controller: cubit,
 listener: (context, state) { },
 child: MyWidget(),
 )
 
 // After (2.x)
-GetListenerWidget<MyState>(
+RxListener<MyState>(
 controller: cubit,
 listener: (context, state) { },
 child: MyWidget(),
@@ -239,14 +239,14 @@ emit(Error('Failed'));
 
 ### 4. Leverage new features
 ```dart
-// Use GetChanger for simpler building
-GetChanger<int>(
+// Use RxBuilder for simpler building
+RxBuilder<int>(
 controller: counterCubit,
 builder: (context, count) => Text('$count'),
 )
 
-// Use GetSelector for performance
-GetSelector<UserState, String>(
+// Use RxSelector for performance
+RxSelector<UserState, String>(
 controller: userCubit,
 selector: (state) => state.name,
 builder: (context, name) => Text(name),
@@ -254,7 +254,7 @@ builder: (context, name) => Text(name),
 
 // Use direct Rx values
 final count = 0.obs;
-GetChanger<int>(
+RxBuilder<int>(
 rx: count,
 builder: (context, value) => Text('$value'),
 )

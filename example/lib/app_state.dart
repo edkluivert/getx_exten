@@ -6,9 +6,11 @@ abstract class ApiState extends Equatable {
   @override
   List<Object?> get props => [];
 }
-class ApiInitial extends ApiState{
+
+class ApiInitial extends ApiState {
   const ApiInitial();
 }
+
 class ApiLoading extends ApiState {
   const ApiLoading();
 }

@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:getx_exten/rx_bloc_cubit/rx_bloc.dart';
+import 'package:getx_exten/getx_exten.dart';
 
 abstract class TestEvent {}
+
 class IncrementEvent extends TestEvent {}
+
 class DecrementEvent extends TestEvent {}
+
 class AddEvent extends TestEvent {
   final int value;
   AddEvent(this.value);

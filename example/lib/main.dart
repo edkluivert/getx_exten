@@ -1,12 +1,8 @@
 import 'package:example/app_state.dart';
-import 'package:example/enum.dart';
 import 'package:example/my_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/get_consumer/get_consumer.dart';
 import 'package:getx_exten/getx_exten.dart';
-
-
 
 void main() {
   runApp(const MyApp());
@@ -47,7 +43,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-
   final String title;
 
   @override
@@ -59,17 +54,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final ApiController apiController = Get.put(ApiController());
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Counter Example')),
-      body: GetConsumer<ApiState>(
+      body: RxConsumer<ApiState>(
         controller: apiController,
-        listener: (BuildContext context, state) {
-
-        },
+        listener: (BuildContext context, state) {},
         builder: (context, state) {
           if (state is ApiLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -79,15 +70,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 Column(
                   children: state.data.map((e) => Text(e)).toList(),
                 ),
-                 Center(
-                  child: GetConsumer<CounterState>(
+                Center(
+                  child: RxConsumer<CounterState>(
                     controller: controller,
-                    listenWhen: (previous, current) =>  current.value % 2 == 0,
+                    listenWhen: (previous, current) => current.value % 2 == 0,
                     buildWhen: (previous, current) => current.value % 2 == 0,
                     listener: (context, state) {
-                      if (state is CounterValue ) {
+                      if (state is CounterValue) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("You reached ${state.value}! 🎉")),
+                          SnackBar(
+                              content: Text("You reached ${state.value}! 🎉")),
                         );
                       }
                     },
@@ -115,13 +107,11 @@ class _MyHomePageState extends State<MyHomePage> {
           return const Text("Press fetch to load items");
         },
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: controller.increment,
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add),
       ),
     );
-
-     }
   }
+}

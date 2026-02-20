@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/get_changer/get_changer.dart';
-import 'package:getx_exten/rx_bloc_cubit/rx_bloc.dart';
-import 'package:getx_exten/rx_bloc_cubit/rx_cubit.dart';
+import 'package:getx_exten/getx_exten.dart';
 
 import 'rx_cubit_test.dart';
 
 void main() {
-  group('GetChanger', () {
+  group('RxBuilder', () {
     testWidgets('rebuilds on state change with rx', (tester) async {
       final rx = 0.obs;
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetChanger<int>(
+          home: RxBuilder<int>(
             rx: rx,
             builder: (context, state) => Text('$state'),
           ),
@@ -35,7 +33,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetChanger<int>(
+          home: RxBuilder<int>(
             controller: cubit,
             builder: (context, state) => Text('$state'),
           ),
@@ -58,9 +56,10 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetChanger<int>(
+          home: RxBuilder<int>(
             rx: rx,
-            buildWhen: (prev, curr) => curr % 2 == 0, // Only rebuild on even numbers
+            buildWhen: (prev, curr) =>
+                curr % 2 == 0, // Only rebuild on even numbers
             builder: (context, state) {
               buildCount++;
               return Text('$state');
@@ -83,12 +82,13 @@ void main() {
       expect(find.text('2'), findsOneWidget);
     });
 
-    testWidgets('throws error when both rx and controller provided', (tester) async {
+    testWidgets('throws error when both rx and controller provided',
+        (tester) async {
       final rx = 0.obs;
       final cubit = TestCubit();
 
       expect(
-            () => GetChanger<int>(
+        () => RxBuilder<int>(
           rx: rx,
           controller: cubit,
           builder: (context, state) => Text('$state'),
@@ -97,9 +97,10 @@ void main() {
       );
     });
 
-    testWidgets('throws error when neither rx nor controller provided', (tester) async {
+    testWidgets('throws error when neither rx nor controller provided',
+        (tester) async {
       expect(
-            () => GetChanger<int>(
+        () => RxBuilder<int>(
           builder: (context, state) => Text('$state'),
         ),
         throwsAssertionError,

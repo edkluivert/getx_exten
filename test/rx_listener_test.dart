@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:getx_exten/get_listener/get_listener.dart';
+import 'package:getx_exten/getx_exten.dart';
 
 import 'rx_cubit_test.dart';
 
 void main() {
-  group('GetListenerWidget', () {
+  group('RxListener', () {
     testWidgets('triggers listener on initial state', (tester) async {
       final rx = 0.obs;
       final listenedValues = <int>[];
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetListenerWidget<int>(
+          home: RxListener<int>(
             rx: rx,
             listener: (context, state) {
               listenedValues.add(state);
@@ -24,7 +24,8 @@ void main() {
       );
 
       await tester.pump();
-      expect(listenedValues, isEmpty); // Initial state not listened in this implementation
+      expect(listenedValues,
+          isEmpty); // Initial state not listened in this implementation
     });
 
     testWidgets('triggers listener on state change', (tester) async {
@@ -33,7 +34,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetListenerWidget<int>(
+          home: RxListener<int>(
             rx: rx,
             listener: (context, state) {
               listenedValues.add(state);
@@ -60,9 +61,10 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetListenerWidget<int>(
+          home: RxListener<int>(
             rx: rx,
-            listenWhen: (prev, curr) => curr % 2 == 0, // Only listen to even numbers
+            listenWhen: (prev, curr) =>
+                curr % 2 == 0, // Only listen to even numbers
             listener: (context, state) {
               listenedValues.add(state);
             },
@@ -96,7 +98,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetListenerWidget<int>(
+          home: RxListener<int>(
             rx: rx,
             listener: (context, state) {},
             child: Builder(
@@ -127,7 +129,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: GetListenerWidget<int>(
+          home: RxListener<int>(
             controller: cubit,
             listener: (context, state) {
               listenedValues.add(state);

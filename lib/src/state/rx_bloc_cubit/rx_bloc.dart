@@ -1,4 +1,4 @@
-import 'package:getx_exten/getx_exten.dart';
+import 'package:get/get.dart';
 
 typedef Emitter<S> = void Function(S state);
 typedef EventHandler<E, S> = Future<void> Function(E event, Emitter<S> emit);
