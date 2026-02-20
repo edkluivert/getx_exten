@@ -1,7 +1,5 @@
 import 'package:example/app_state.dart';
 import 'package:example/my_controller.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:getx_exten/getx_exten.dart';
 
 void main() {
