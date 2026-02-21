@@ -1,5 +1,6 @@
 import 'package:example/app_state.dart';
 import 'package:example/my_controller.dart';
+import 'package:example/second_screen.dart';
 import 'package:getx_exten/getx_exten.dart';
 
 void main() {
@@ -97,6 +98,18 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                   ),
                 ),
+
+                ElevatedButton(
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SecondScreen(),
+                        ),
+                      );
+                    },
+                    child: Text('Click me'),
+                )
               ],
             );
           } else if (state is ApiError) {
