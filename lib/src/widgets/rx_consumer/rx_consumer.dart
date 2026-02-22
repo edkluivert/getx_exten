@@ -5,7 +5,7 @@ import 'package:getx_exten/src/state/rx_bloc_cubit/rx_cubit.dart';
 import 'package:getx_exten/src/state/rx_bloc_cubit/rx_bloc.dart';
 
 /// Consumer widget that both listens and rebuilds
-/// Can work with RxCubit, RxBloc, or any Rx<T>
+/// Can work with RxCubit, RxBloc, or any `Rx<T>`
 class RxConsumer<S> extends StatefulWidget {
   const RxConsumer({
     required this.builder,

@@ -59,7 +59,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(title: const Text('Counter Example')),
       body: RxConsumer<ApiState>(
         controller: apiController,
-        listener: (BuildContext context, state) {},
+        listener: (BuildContext context, state) {
+
+        },
         builder: (context, state) {
           if (state is ApiLoading) {
             return const Center(child: CircularProgressIndicator());

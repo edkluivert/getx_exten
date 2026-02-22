@@ -6,8 +6,7 @@ import 'package:getx_exten/src/state/rx_bloc_cubit/rx_bloc.dart';
 
 /// Builder widget that rebuilds on state changes
 /// Can work with RxCubit, RxBloc, or any `Rx<T>`
-/// Builder widget that rebuilds on state changes
-/// Can work with RxCubit, RxBloc, or any Rx<T>
+
 class RxBuilder<S> extends StatefulWidget {
   const RxBuilder({
     required this.builder,
