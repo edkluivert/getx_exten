@@ -5,7 +5,7 @@ import 'package:getx_exten/src/state/rx_bloc_cubit/rx_cubit.dart';
 import 'package:getx_exten/src/state/rx_bloc_cubit/rx_bloc.dart';
 
 /// Listener widget that doesn't rebuild, only listens
-/// Can work with RxCubit, RxBloc, or any Rx<T>
+/// Can work with RxCubit, RxBloc, or any `Rx<T>`
 class RxListener<S> extends StatefulWidget {
   const RxListener({
     required this.listener,
